@@ -25,14 +25,18 @@ import {
     FileText,
     AlertTriangle,
     Newspaper,
+    CheckCircle2,
+    XCircle,
 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
-interface LoanActiveNewsDialogProps {
+interface LoanNewsDialogProps {
     loanId: string
     vehicleInfo: string
-    children: ReactNode
+    children?: ReactNode
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
 const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof Wrench; color: string }> = {
@@ -46,29 +50,29 @@ const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof W
     [NewsCategory.OTHER]: { label: "Otro", icon: FileText, color: "bg-gray-500" },
 }
 
-export function LoanActiveNewsDialog({ loanId, vehicleInfo, children }: LoanActiveNewsDialogProps) {
-    const [open, setOpen] = useState(false)
+export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: controlledOpen, onOpenChange }: LoanNewsDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [news, setNews] = useState<News[]>([])
-    const [totalInstallmentsExcluded, setTotalInstallmentsExcluded] = useState(0)
+
+    // Use controlled or internal state
+    const isControlled = controlledOpen !== undefined
+    const open = isControlled ? controlledOpen : internalOpen
+    const setOpen = isControlled ? (onOpenChange || (() => {})) : setInternalOpen
 
     useEffect(() => {
         if (open) {
-            loadActiveNews()
+            loadAllNews()
         }
     }, [open, loanId])
 
-    const loadActiveNews = async () => {
+    const loadAllNews = async () => {
         try {
             setLoading(true)
-            const [activeNews, totalToSubtract] = await Promise.all([
-                NewsService.getActiveLoanNews(loanId),
-                NewsService.getTotalInstallmentsToSubtract(loanId),
-            ])
-            setNews(activeNews)
-            setTotalInstallmentsExcluded(totalToSubtract)
+            const allNews = await NewsService.getAllLoanNews(loanId)
+            setNews(allNews)
         } catch (error) {
-            console.error("Error loading active news:", error)
+            console.error("Error loading news:", error)
         } finally {
             setLoading(false)
         }
@@ -81,16 +85,29 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children }: LoanActi
         return `${start} - ${end}`
     }
 
+    // Check if a news item is currently active
+    const isNewsCurrentlyActive = (item: News) => {
+        if (!item.isActive) return false
+        if (!item.endDate) return true
+        return new Date(item.endDate) >= new Date()
+    }
+
+    // Calculate summary
+    const activeNews = news.filter(isNewsCurrentlyActive)
+    const totalInstallmentsExcluded = activeNews.reduce((sum, item) => sum + (item.installmentsToSubtract || 0), 0)
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {children}
-            </DialogTrigger>
+            {children && (
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+            )}
             <DialogContent className="max-w-2xl max-h-[80vh]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Newspaper className="h-5 w-5 text-amber-500" />
-                        Novedades Activas
+                        Novedades del Contrato
                     </DialogTitle>
                     <p className="text-sm text-muted-foreground">
                         {vehicleInfo}
@@ -99,20 +116,31 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children }: LoanActi
 
                 {/* Summary */}
                 {!loading && news.length > 0 && (
-                    <div className="flex items-center gap-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <div className="flex items-center gap-4 p-3 bg-muted/50 border rounded-lg">
                         <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            <Newspaper className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm font-medium">
-                                {news.length} {news.length === 1 ? "novedad activa" : "novedades activas"}
+                                {news.length} {news.length === 1 ? "novedad total" : "novedades totales"}
                             </span>
                         </div>
                         <Separator orientation="vertical" className="h-4" />
                         <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-amber-500" />
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
                             <span className="text-sm">
-                                <strong className="text-amber-500">{totalInstallmentsExcluded}</strong> cuotas excluidas
+                                <strong className="text-green-500">{activeNews.length}</strong> activas
                             </span>
                         </div>
+                        {totalInstallmentsExcluded > 0 && (
+                            <>
+                                <Separator orientation="vertical" className="h-4" />
+                                <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-amber-500" />
+                                    <span className="text-sm">
+                                        <strong className="text-amber-500">{totalInstallmentsExcluded}</strong> cuotas excluidas
+                                    </span>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 
@@ -134,7 +162,7 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children }: LoanActi
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Newspaper className="h-12 w-12 text-muted-foreground/30 mb-4" />
                             <p className="text-muted-foreground">
-                                No hay novedades activas para este contrato
+                                No hay novedades para este contrato
                             </p>
                         </div>
                     ) : (
@@ -142,11 +170,12 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children }: LoanActi
                             {news.map((item) => {
                                 const config = NEWS_CATEGORY_CONFIG[item.category]
                                 const Icon = config.icon
+                                const isActive = isNewsCurrentlyActive(item)
                                 
                                 return (
                                     <div
                                         key={item.id}
-                                        className="p-4 border rounded-lg space-y-3 hover:bg-muted/50 transition-colors"
+                                        className={`p-4 border rounded-lg space-y-3 hover:bg-muted/50 transition-colors ${!isActive ? "opacity-60" : ""}`}
                                     >
                                         {/* Header */}
                                         <div className="flex items-center justify-between">
@@ -156,6 +185,17 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children }: LoanActi
                                                     {config.label}
                                                 </Badge>
                                                 <span className="font-medium">{item.title}</span>
+                                                {isActive ? (
+                                                    <Badge variant="outline" className="text-green-500 border-green-500/50">
+                                                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                                                        Activa
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="text-muted-foreground border-muted-foreground/50">
+                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                        Inactiva
+                                                    </Badge>
+                                                )}
                                             </div>
                                             {item.daysUnavailable && (
                                                 <Badge variant="outline" className="text-amber-500 border-amber-500/50">

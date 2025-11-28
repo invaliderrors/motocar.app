@@ -7,7 +7,7 @@ export default function LoansPage() {
     <div className="flex-1 w-full overflow-hidden flex flex-col">
       <PageHeader
         icon={DollarSign}
-        title="contratos"
+        title="Contratos"
         subtitle="Administra los contratos y financiamientos"
         badgeIcon={TrendingUp}
         badgeLabel="Activo"

@@ -63,7 +63,7 @@ import { Resource } from "@/lib/types/permissions"
 interface LoanTableRowProps {
     loan: Loan
     index: number
-    newsSummary?: { activeNewsCount: number; totalInstallmentsExcluded: number }
+    newsSummary?: { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }
     onDelete: (id: string) => void
     onArchive: (id: string, archived: boolean) => void
     onPrintContract: (loan: Loan) => void
@@ -76,7 +76,11 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
     const installmentPermissions = useResourcePermissions(Resource.INSTALLMENT)
     const contractPermissions = useResourcePermissions(Resource.CONTRACT)
 
+    // State for news dialog (controlled from dropdown)
+    const [newsDialogOpen, setNewsDialogOpen] = useState(false)
+
     // Use news summary from props (batch loaded from parent)
+    const totalNewsCount = newsSummary?.totalNewsCount ?? 0
     const activeNewsCount = newsSummary?.activeNewsCount ?? 0
     const totalInstallmentsExcluded = newsSummary?.totalInstallmentsExcluded ?? 0
 
@@ -242,12 +246,12 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className={`h-8 px-2 gap-1.5 ${activeNewsCount > 0 ? "hover:bg-amber-500/10" : "hover:bg-muted"}`}
+                                    className={`h-8 px-2 gap-1.5 ${totalNewsCount > 0 ? "hover:bg-amber-500/10" : "hover:bg-muted"}`}
                                 >
-                                    <Newspaper className={`h-4 w-4 ${activeNewsCount > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
-                                    {activeNewsCount > 0 ? (
+                                    <Newspaper className={`h-4 w-4 ${totalNewsCount > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
+                                    {totalNewsCount > 0 ? (
                                         <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-xs">
-                                            {activeNewsCount}
+                                            {totalNewsCount}
                                         </Badge>
                                     ) : (
                                         <span className="text-muted-foreground text-xs">0</span>
@@ -255,15 +259,18 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                {activeNewsCount > 0 ? (
+                                {totalNewsCount > 0 ? (
                                     <>
-                                        <p>{activeNewsCount} {activeNewsCount === 1 ? "novedad activa" : "novedades activas"}</p>
+                                        <p>{totalNewsCount} {totalNewsCount === 1 ? "novedad" : "novedades"}</p>
+                                        {activeNewsCount > 0 && (
+                                            <p className="text-green-500">{activeNewsCount} activas</p>
+                                        )}
                                         {totalInstallmentsExcluded > 0 && (
                                             <p className="text-amber-500">{totalInstallmentsExcluded} cuotas excluidas</p>
                                         )}
                                     </>
                                 ) : (
-                                    <p>Sin novedades activas</p>
+                                    <p>Sin novedades</p>
                                 )}
                             </TooltipContent>
                         </Tooltip>
@@ -458,20 +465,15 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                         )}
 
                         {/* View active news */}
-                        <LoanActiveNewsDialog
-                            loanId={loan.id}
-                            vehicleInfo={`${loan.vehicle?.model || loan.motorcycle?.model} - ${loan.vehicle?.plate || loan.motorcycle?.plate}`}
-                        >
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Newspaper className="mr-2 h-4 w-4" />
-                                Ver novedades
-                                {activeNewsCount > 0 && (
-                                    <Badge variant="secondary" className="ml-auto text-xs bg-amber-500/20 text-amber-500">
-                                        {activeNewsCount}
-                                    </Badge>
-                                )}
-                            </DropdownMenuItem>
-                        </LoanActiveNewsDialog>
+                        <DropdownMenuItem onSelect={() => setNewsDialogOpen(true)}>
+                            <Newspaper className="mr-2 h-4 w-4" />
+                            Ver novedades
+                            {totalNewsCount > 0 && (
+                                <Badge variant="secondary" className="ml-auto text-xs bg-amber-500/20 text-amber-500">
+                                    {totalNewsCount}
+                                </Badge>
+                            )}
+                        </DropdownMenuItem>
 
                         {/* Edit loan - requires LOAN.EDIT and loan not archived */}
                         {!loan.archived && loanPermissions.canEdit && (
@@ -554,6 +556,14 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                     </DropdownMenuContent>
                 </DropdownMenu>
             </TableCell>
+
+            {/* Controlled News Dialog for dropdown menu */}
+            <LoanActiveNewsDialog
+                loanId={loan.id}
+                vehicleInfo={`${loan.vehicle?.model || loan.motorcycle?.model} - ${loan.vehicle?.plate || loan.motorcycle?.plate}`}
+                open={newsDialogOpen}
+                onOpenChange={setNewsDialogOpen}
+            />
         </TableRow>
     )
 }

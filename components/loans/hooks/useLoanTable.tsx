@@ -6,7 +6,7 @@ import { HttpService } from "@/lib/http"
 import { Loan } from "@/lib/types"
 import { NewsService } from "@/lib/services/news.service"
 
-export type NewsSummary = Record<string, { activeNewsCount: number; totalInstallmentsExcluded: number }>
+export type NewsSummary = Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }>
 
 export function useLoanTable() {
     const [loans, setLoans] = useState<Loan[]>([])
@@ -72,7 +72,7 @@ export function useLoanTable() {
             if (mappedLoans.length > 0) {
                 try {
                     const loanIds = mappedLoans.map(loan => loan.id)
-                    const summary = await NewsService.getActiveNewsSummaryBatch(loanIds)
+                    const summary = await NewsService.getNewsSummaryBatch(loanIds)
                     setNewsSummary(summary)
                 } catch (newsError) {
                     console.error("Error fetching news summary:", newsError)

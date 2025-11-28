@@ -103,6 +103,13 @@ export class NewsService {
         return response.data;
     }
 
+    static async getAllLoanNews(loanId: string): Promise<News[]> {
+        const response = await HttpService.get<News[]>(`/api/v1/news/loan/${loanId}/all`, {
+            headers: this.getAuthHeader(),
+        });
+        return response.data;
+    }
+
     static async getActiveStoreNews(storeId: string): Promise<News[]> {
         const response = await HttpService.get<News[]>(`/api/v1/news/store/${storeId}/active`, {
             headers: this.getAuthHeader(),
@@ -120,11 +127,11 @@ export class NewsService {
         return response.data;
     }
 
-    static async getActiveNewsSummaryBatch(
+    static async getNewsSummaryBatch(
         loanIds: string[]
-    ): Promise<Record<string, { activeNewsCount: number; totalInstallmentsExcluded: number }>> {
+    ): Promise<Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }>> {
         const response = await HttpService.post<
-            Record<string, { activeNewsCount: number; totalInstallmentsExcluded: number }>
+            Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }>
         >(
             "/api/v1/news/batch/active-news-summary",
             { loanIds },
