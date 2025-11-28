@@ -18,37 +18,35 @@ interface PaymentBreakdownCardProps {
 export function PaymentBreakdownCard({ breakdown, gps }: PaymentBreakdownCardProps) {
     return (
         <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/40 dark:to-green-900/20 border-green-200 dark:border-green-800/30 shadow-sm">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-green-700 dark:text-green-300">
-                    <DollarSign className="h-4 w-4" />
-                    Desglose del pago
+            <CardHeader className="pb-1 pt-2 px-3">
+                <CardTitle className="text-sm flex items-center gap-2 text-green-700 dark:text-green-300">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Desglose
                 </CardTitle>
             </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <p className="text-xs font-medium text-green-600/70 dark:text-green-400/70 mb-1">Capital:</p>
-                            <p className="text-base font-semibold text-green-700 dark:text-green-300">
-                                {formatCurrency(breakdown.principalAmount)}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-xs font-medium text-green-600/70 dark:text-green-400/70 mb-1">Interés:</p>
-                            <p className="text-base font-semibold text-green-700 dark:text-green-300">
-                                {formatCurrency(breakdown.interestAmount)}
-                            </p>
-                        </div>
+            <CardContent className="px-3 pb-2 pt-1">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    <div>
+                        <p className="text-[10px] font-medium text-green-600/70 dark:text-green-400/70">Capital</p>
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                            {formatCurrency(breakdown.principalAmount)}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-medium text-green-600/70 dark:text-green-400/70">Interés</p>
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                            {formatCurrency(breakdown.interestAmount)}
+                        </p>
                     </div>
                     {gps > 0 && (
                         <div>
-                            <p className="text-xs font-medium text-green-600/70 dark:text-green-400/70 mb-1">GPS:</p>
-                            <p className="text-base font-semibold text-green-700 dark:text-green-300">{formatCurrency(gps)}</p>
+                            <p className="text-[10px] font-medium text-green-600/70 dark:text-green-400/70">GPS</p>
+                            <p className="text-sm font-semibold text-green-700 dark:text-green-300">{formatCurrency(gps)}</p>
                         </div>
                     )}
-                    <div className="pt-3 mt-3 border-t border-green-200 dark:border-green-800/50">
-                        <p className="text-xs font-medium text-green-600/70 dark:text-green-400/70 mb-1">Total a pagar:</p>
-                        <p className="text-xl font-semibold text-green-700 dark:text-green-300">
+                    <div className={gps > 0 ? "" : "col-span-2"}>
+                        <p className="text-[10px] font-medium text-green-600/70 dark:text-green-400/70">Total</p>
+                        <p className="text-base font-bold text-green-700 dark:text-green-300">
                             {formatCurrency(breakdown.totalAmount)}
                         </p>
                     </div>

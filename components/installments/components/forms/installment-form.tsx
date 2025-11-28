@@ -17,7 +17,6 @@ import { PaymentSummaryCard } from "../payment-summary-card"
 import { useInstallmentForm } from "../../hooks/useInstallmentForm"
 import { ActionButtons } from "./ActionButtons"
 import { ClientInformationCard } from "./ClientInformationCard"
-import { FileAttachmentSection } from "./FileAttachmentSection"
 import { LoanInformationCard } from "./LoanInformationCard"
 import { PaymentBreakdownCard } from "./PaymentBreakdownCard"
 import { PaymentDetailsCard } from "./PaymentDetailsCard"
@@ -49,10 +48,9 @@ export function InstallmentForm({
     fileInputRef,
     form,
     gps,
-    isLate,
-    isAdvance,
-    dueDate,
     lastInstallmentInfo,
+    paymentCoverage,
+    loadingCoverage,
     handleLoanChange,
     handleFileChange,
     removeFile,
@@ -63,13 +61,13 @@ export function InstallmentForm({
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[900px] p-0 max-h-[90vh] overflow-auto">
-        <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-xl flex items-center gap-2">
+      <DialogContent className="sm:max-w-[1100px] p-0 max-h-[85vh] overflow-hidden">
+        <DialogHeader className="p-4 pb-2">
+          <DialogTitle className="text-lg flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
             {isEditing ? "Editar Cuota" : "Registrar Pago de Cuota"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             {isEditing
               ? "Modifique los datos de la cuota existente."
               : "Complete el formulario para registrar un nuevo pago de cuota."}
@@ -77,80 +75,83 @@ export function InstallmentForm({
         </DialogHeader>
 
         {loadingData ? (
-          <div className="p-6 space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+          <div className="p-4 grid grid-cols-3 gap-3">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col md:flex-row">
-              {/* Left column - Form fields */}
-              <div className="flex-1 p-6 pt-0 border-r">
-                <div className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="px-4 pb-4">
+              {/* 3-column layout: Left (Client + Payment) | Middle (Summary + Contract + Breakdown) | Right (Status) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {/* LEFT COLUMN: Client Info + Payment Details (with attachment inside) */}
+                <div className="space-y-3">
                   <ClientInformationCard
                     control={form.control}
                     loans={loans}
                     selectedLoan={selectedLoan}
                     onLoanChange={handleLoanChange}
                   />
-
-                  <PaymentDetailsCard control={form.control} isLate={isLate} isAdvance={isAdvance} dueDate={dueDate} />
-
-                  <FileAttachmentSection
-                    selectedFile={selectedFile}
-                    filePreview={filePreview}
-                    uploadProgress={uploadProgress}
-                    isUploading={isUploading}
-                    fileInputRef={fileInputRef}
-                    onFileChange={handleFileChange}
-                    onRemoveFile={removeFile}
+                  <PaymentDetailsCard 
+                    control={form.control} 
+                    paymentCoverage={paymentCoverage}
+                    loadingCoverage={loadingCoverage}
+                    fileAttachment={{
+                      selectedFile,
+                      filePreview,
+                      uploadProgress,
+                      isUploading,
+                      fileInputRef,
+                      onFileChange: handleFileChange,
+                      onRemoveFile: removeFile,
+                    }}
+                  />
+                  <ActionButtons
+                    loading={loading}
+                    isEditing={isEditing}
+                    selectedLoan={selectedLoan}
+                    onCancel={() => handleDialogChange(false)}
                   />
                 </div>
-              </div>
 
-              {/* Right column - Summary and data */}
-              <div className="flex-1 p-6 pt-0">
-                <div className="space-y-6">
-                  {selectedLoan ? (
+                {/* MIDDLE COLUMN: Summary + Contract + Breakdown */}
+                <div className="space-y-3">
+                  {selectedLoan && paymentBreakdown ? (
                     <>
-                      {/* Payment Status - Most Prominent */}
-                      <PaymentStatusSection
-                        lastInstallmentInfo={lastInstallmentInfo}
-                        payments={selectedLoan.payments || []}
+                      <PaymentSummaryCard
+                        loanAmount={selectedLoan.financedAmount}
+                        paidAmount={selectedLoan.totalCapitalPaid}
+                        remainingAmount={selectedLoan.debtRemaining}
+                        progress={(selectedLoan.totalCapitalPaid / selectedLoan.financedAmount) * 100}
                       />
-
                       <LoanInformationCard loan={selectedLoan} />
-
-                      {paymentBreakdown && (
-                        <>
-                          <PaymentBreakdownCard breakdown={paymentBreakdown} gps={gps} />
-                          <PaymentSummaryCard
-                            loanAmount={selectedLoan.financedAmount}
-                            paidAmount={selectedLoan.totalCapitalPaid}
-                            remainingAmount={selectedLoan.debtRemaining}
-                            progress={(selectedLoan.totalCapitalPaid / selectedLoan.financedAmount) * 100}
-                          />
-                        </>
-                      )}
+                      <PaymentBreakdownCard breakdown={paymentBreakdown} gps={gps} />
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full py-12 text-center text-muted-foreground">
-                      <User className="h-12 w-12 mb-4 opacity-20" />
-                      <h3 className="text-lg font-medium mb-2">Seleccione un cliente</h3>
-                      <p className="text-sm max-w-xs">
-                        Seleccione un cliente para ver la información del contrato y calcular el desglose del pago
+                    <div className="flex flex-col items-center justify-center h-full py-12 text-center text-muted-foreground border rounded-lg">
+                      <User className="h-10 w-10 mb-3 opacity-20" />
+                      <h3 className="text-sm font-medium mb-1">Seleccione un cliente</h3>
+                      <p className="text-xs max-w-[180px]">
+                        Para ver información del contrato
                       </p>
                     </div>
                   )}
                 </div>
 
-                <ActionButtons
-                  loading={loading}
-                  isEditing={isEditing}
-                  selectedLoan={selectedLoan}
-                  onCancel={() => handleDialogChange(false)}
-                />
+                {/* RIGHT COLUMN: Payment Status */}
+                <div>
+                  {selectedLoan ? (
+                    <PaymentStatusSection
+                      lastInstallmentInfo={lastInstallmentInfo}
+                      payments={selectedLoan.payments || []}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full py-12 text-center text-muted-foreground border rounded-lg">
+                      <p className="text-xs">Estado de pagos</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </form>
           </Form>

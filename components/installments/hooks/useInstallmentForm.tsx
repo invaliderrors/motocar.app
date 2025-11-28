@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -13,6 +13,24 @@ import { utcToZonedTime } from "date-fns-tz"
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const COLOMBIA_TZ = "America/Bogota"
+
+// Payment coverage response type from API
+interface PaymentCoverageResponse {
+    loanId: string
+    dailyRate: number
+    loanStartDate: string
+    lastCoveredDate: string
+    paymentAmount: number
+    daysCovered: number
+    coverageStartDate: string
+    coverageEndDate: string
+    isLate: boolean
+    latePaymentDate: string | null
+    daysBehind: number
+    amountNeededToCatchUp: number
+    willBeCurrentAfterPayment: boolean
+    daysAheadAfterPayment: number
+}
 
 const installmentSchema = z.object({
     loanId: z.string({ required_error: "Debe seleccionar un contrato" }),
@@ -68,6 +86,8 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         lastPaymentDate: Date | null
         daysSinceLastPayment: number | null
     } | null>(null)
+    const [paymentCoverage, setPaymentCoverage] = useState<PaymentCoverageResponse | null>(null)
+    const [loadingCoverage, setLoadingCoverage] = useState(false)
 
     const { toast } = useToast()
     const { user } = useAuth()
@@ -88,7 +108,6 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
 
     const amount = form.watch("amount")
     const gps = form.watch("gps")
-    const dueDate = form.watch("dueDate")
     const paymentMethod = form.watch("paymentMethod")
 
     // Load installment data for editing
@@ -154,6 +173,50 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         }
     }, [installment, form, user, selectedLoan])
 
+    // Fetch payment coverage from API
+    const fetchPaymentCoverage = useCallback(async (loanId: string, paymentAmount: number) => {
+        if (!loanId || paymentAmount <= 0) {
+            setPaymentCoverage(null)
+            return
+        }
+
+        try {
+            setLoadingCoverage(true)
+            const response = await HttpService.post<PaymentCoverageResponse>(
+                "/api/v1/installments/calculate-coverage",
+                { loanId, amount: paymentAmount }
+            )
+            setPaymentCoverage(response.data)
+            
+            // Auto-set the dueDate based on coverage calculation (only for new installments)
+            if (!isEditing && response.data.isLate && response.data.latePaymentDate) {
+                form.setValue("dueDate", new Date(response.data.latePaymentDate))
+            } else if (!isEditing && !response.data.isLate) {
+                // Payment is on time or ahead, clear the due date
+                form.setValue("dueDate", null)
+            }
+        } catch (error) {
+            console.error("Error calculating payment coverage:", error)
+            setPaymentCoverage(null)
+        } finally {
+            setLoadingCoverage(false)
+        }
+    }, [isEditing, form])
+
+    // Debounced effect to fetch payment coverage when amount or loan changes
+    useEffect(() => {
+        if (!selectedLoan || amount <= 0) {
+            setPaymentCoverage(null)
+            return
+        }
+
+        const timeoutId = setTimeout(() => {
+            fetchPaymentCoverage(selectedLoan.id, amount)
+        }, 300)
+
+        return () => clearTimeout(timeoutId)
+    }, [selectedLoan?.id, amount, fetchPaymentCoverage])
+
     // Calculate payment breakdown
     useEffect(() => {
         if (selectedLoan) {
@@ -162,7 +225,7 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 calculatePaymentBreakdown(selectedLoan, amount, gps)
             }
         }
-    }, [selectedLoan, amount, gps, dueDate, paymentMethod])
+    }, [selectedLoan, amount, gps, paymentMethod])
 
     // Load loans when dialog opens
     useEffect(() => {
@@ -421,23 +484,9 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 form.setValue("attachmentUrl", filePreview)
             }
 
-            // Determine if payment is late or advance based on dueDate
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            
-            let isLate = false
-            let isAdvance = false
-            
-            if (values.dueDate) {
-                const due = new Date(values.dueDate)
-                due.setHours(0, 0, 0, 0)
-                
-                if (due < today) {
-                    isLate = true
-                } else if (due > today) {
-                    isAdvance = true
-                }
-            }
+            // Use the calculated payment coverage from API for isLate/isAdvance
+            const isLate = paymentCoverage?.isLate ?? false
+            const isAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
 
             const payload: Record<string, any> = {
                 loanId: values.loanId,
@@ -451,13 +500,13 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 createdById: values.createdById || user?.id,
             }
 
-            if (values.dueDate) {
-                payload.dueDate = values.dueDate.toISOString()
-                // For backward compatibility, also send latePaymentDate if late
-                if (isLate) {
-                    payload.latePaymentDate = values.dueDate.toISOString()
-                } else if (isAdvance) {
-                    payload.advancePaymentDate = values.dueDate.toISOString()
+            // Set late/advance payment dates from coverage calculation
+            if (paymentCoverage) {
+                if (isLate && paymentCoverage.latePaymentDate) {
+                    payload.latePaymentDate = paymentCoverage.latePaymentDate
+                }
+                if (isAdvance) {
+                    payload.advancePaymentDate = paymentCoverage.coverageEndDate
                 }
             }
 
@@ -467,7 +516,7 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             console.log('📅 Payment submission payload:', {
                 isEditing,
                 paymentDate: payload.paymentDate,
-                dueDate: payload.dueDate,
+                paymentCoverage,
                 isLate,
                 isAdvance,
                 fullPayload: payload
@@ -511,28 +560,16 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             setFilePreview(null)
             setUploadProgress(0)
             setIsUploading(false)
+            setPaymentCoverage(null)
             if (!isEditing) {
                 form.reset()
             }
         }
     }
 
-    // Calculate payment status based on dueDate
-    const getPaymentStatus = () => {
-        if (!dueDate) return { isLate: false, isAdvance: false }
-        
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const due = new Date(dueDate)
-        due.setHours(0, 0, 0, 0)
-        
-        return {
-            isLate: due < today,
-            isAdvance: due > today
-        }
-    }
-    
-    const paymentStatus = getPaymentStatus()
+    // Use API-calculated coverage for isLate/isAdvance
+    const effectiveIsLate = paymentCoverage?.isLate ?? false
+    const effectiveIsAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
 
     return {
         // State
@@ -551,10 +588,11 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         form,
         amount,
         gps,
-        isLate: paymentStatus.isLate,
-        isAdvance: paymentStatus.isAdvance,
-        dueDate,
+        isLate: effectiveIsLate,
+        isAdvance: effectiveIsAdvance,
         lastInstallmentInfo,
+        paymentCoverage,
+        loadingCoverage,
 
         // Actions
         setOpen,

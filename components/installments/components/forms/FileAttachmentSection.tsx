@@ -14,6 +14,7 @@ interface FileAttachmentSectionProps {
     fileInputRef: React.RefObject<HTMLInputElement | null>
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     onRemoveFile: () => void
+    compact?: boolean
 }
 
 export function FileAttachmentSection({
@@ -24,6 +25,7 @@ export function FileAttachmentSection({
     fileInputRef,
     onFileChange,
     onRemoveFile,
+    compact = false,
 }: FileAttachmentSectionProps) {
     const getFileIcon = (file: File) => {
         if (file.type.startsWith("image/")) {
@@ -39,16 +41,21 @@ export function FileAttachmentSection({
         <div className="space-y-1">
             <div className="flex items-center justify-between">
                 <FormLabel className="text-sm">Adjuntar archivo</FormLabel>
-                <FormDescription className="text-[10px]">Máximo 5MB</FormDescription>
+                {!compact && <FormDescription className="text-[10px]">Máximo 5MB</FormDescription>}
             </div>
             <div className="flex flex-col gap-2">
                 <div
-                    className="border-2 border-dashed rounded-md p-3 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                    className={`border-2 border-dashed rounded-md text-center cursor-pointer hover:bg-muted/50 transition-colors ${compact ? 'p-2' : 'p-3'}`}
                     onClick={() => fileInputRef.current?.click()}
                 >
-                    <Paperclip className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-xs font-medium">Haga clic para seleccionar un archivo</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">o arrastre y suelte aquí</p>
+                    <Paperclip className={`mx-auto text-muted-foreground ${compact ? 'h-4 w-4' : 'h-5 w-5 mb-1'}`} />
+                    {!compact && (
+                        <>
+                            <p className="text-xs font-medium">Haga clic para seleccionar un archivo</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">o arrastre y suelte aquí</p>
+                        </>
+                    )}
+                    {compact && <p className="text-xs font-medium inline ml-2">Adjuntar (máx 5MB)</p>}
                     <input
                         type="file"
                         ref={fileInputRef}

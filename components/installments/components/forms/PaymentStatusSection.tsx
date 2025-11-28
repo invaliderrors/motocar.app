@@ -158,49 +158,49 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments }: PaymentS
         .slice(0, 5)
 
     return (
-        <Card className="border-2 border-primary/30 shadow-md">
-            <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center justify-between">
+        <Card className="border-primary/20 shadow-sm">
+            <CardHeader className="pb-2 pt-3 px-3">
+                <CardTitle className="text-sm flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-primary" />
+                        <Calendar className="h-4 w-4 text-primary" />
                         Estado de Pagos
                     </span>
-                    <Badge variant={getStatusBadgeVariant()} className={`text-sm font-semibold px-3 py-1 ${getStatusBadgeClassName()}`}>
+                    <Badge variant={getStatusBadgeVariant()} className={`text-xs font-semibold px-2 py-0.5 ${getStatusBadgeClassName()}`}>
                         {getStatusIcon()}
                         <span className="ml-1">{paymentStatus.text}</span>
                     </Badge>
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-3 pb-3 pt-0 space-y-2">
                 {/* Current Status Details */}
-                <div className="bg-muted/30 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Último pago:</p>
+                <div className="bg-muted/30 rounded-md p-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs text-muted-foreground">Último pago:</p>
                             {lastInstallmentInfo?.lastPaymentDate ? (
-                                <p className="text-base font-semibold">
-                                    {format(toColombianTime(lastInstallmentInfo.lastPaymentDate), "PPP", { locale: es })}
+                                <p className="text-sm font-medium truncate">
+                                    {format(toColombianTime(lastInstallmentInfo.lastPaymentDate), "dd/MM/yyyy", { locale: es })}
                                 </p>
                             ) : (
-                                <p className="text-base font-semibold text-muted-foreground">Sin pagos registrados</p>
+                                <p className="text-sm text-muted-foreground">Sin pagos</p>
                             )}
                         </div>
                         <div className="text-right">
-                            <p className="text-sm font-medium text-muted-foreground">Días desde última cuota:</p>
-                            <p className="text-2xl font-bold">{effectiveDaysSinceLastPayment ?? 0}</p>
+                            <p className="text-xs text-muted-foreground">Días desde última:</p>
+                            <p className="text-lg font-bold">{effectiveDaysSinceLastPayment ?? 0}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Payment History */}
+                {/* Payment History - Compact */}
                 {recentPayments.length > 0 && (
                     <div>
-                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Historial Reciente
+                        <h4 className="text-xs font-medium mb-1 flex items-center gap-1 text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Historial
                         </h4>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                            {recentPayments.map((payment, index) => {
+                        <div className="space-y-1 max-h-20 overflow-y-auto">
+                            {recentPayments.slice(0, 3).map((payment, index) => {
                                 // Determine the display date: latePaymentDate for late, advancePaymentDate for advance, otherwise paymentDate
                                 const displayDate = payment.latePaymentDate 
                                     ? toColombianTime(payment.latePaymentDate)
@@ -213,33 +213,17 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments }: PaymentS
                                 return (
                                     <div
                                         key={payment.id}
-                                        className={`flex items-center justify-between p-2 rounded-md text-sm ${index === 0 ? "bg-primary/10 border border-primary/20" : "bg-muted/20"
-                                            }`}
+                                        className={`flex items-center justify-between p-1.5 rounded text-xs ${index === 0 ? "bg-primary/10" : "bg-muted/20"}`}
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${
+                                        <div className="flex items-center gap-1.5">
+                                            <div className={`w-1.5 h-1.5 rounded-full ${
                                                 payment.isLate ? "bg-red-500" : isAdvance ? "bg-blue-500" : "bg-green-500"
                                             }`} />
                                             <span className="font-medium">
-                                                {format(displayDate, "dd/MM/yyyy", { locale: es })}
+                                                {format(displayDate, "dd/MM/yy", { locale: es })}
                                             </span>
-                                            {payment.isLate && (
-                                                <Badge variant="destructive" className="text-xs px-1 py-0">
-                                                    Tardío
-                                                </Badge>
-                                            )}
-                                            {isAdvance && (
-                                                <Badge className="text-xs px-1 py-0 bg-blue-500 hover:bg-blue-600">
-                                                    Adelantado
-                                                </Badge>
-                                            )}
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold">${payment.amount.toLocaleString()}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {PAYMENT_METHOD_TRANSLATIONS[payment.paymentMethod] || payment.paymentMethod}
-                                            </p>
-                                        </div>
+                                        <span className="font-semibold">${payment.amount.toLocaleString()}</span>
                                     </div>
                                 )
                             })}
@@ -249,9 +233,9 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments }: PaymentS
 
                 {/* No payments message */}
                 {recentPayments.length === 0 && (
-                    <div className="text-center py-4 text-muted-foreground">
-                        <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No hay pagos registrados</p>
+                    <div className="text-center py-2 text-muted-foreground">
+                        <Calendar className="h-5 w-5 mx-auto mb-1 opacity-50" />
+                        <p className="text-xs">Sin pagos registrados</p>
                     </div>
                 )}
             </CardContent>
