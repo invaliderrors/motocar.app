@@ -3,7 +3,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DollarSign, User, Bike, CalendarDays, Wallet, Activity, Settings } from "lucide-react"
+import { DollarSign, User, Bike, CalendarDays, Wallet, Activity, Settings, Newspaper } from "lucide-react"
 import { LoanTableControls } from "./components/LoanTableControls"
 import { LoanTableDialogs } from "./components/LoanTableDialogs"
 import { LoanTablePagination } from "./components/LoanTablePagination"
@@ -13,6 +13,7 @@ import { useLoanTable } from "./hooks/useLoanTable"
 export function LoanTable() {
   const {
     loading,
+    newsSummary,
     searchTerm,
     currentPage,
     itemsPerPage,
@@ -81,6 +82,12 @@ export function LoanTable() {
                       <div className="flex items-center gap-1.5">
                         <Activity className="h-4 w-4" />
                         <span>Estado Vehículo</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell text-foreground font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Newspaper className="h-4 w-4" />
+                        <span>Novedades</span>
                       </div>
                     </TableHead>
                     <TableHead className="hidden xl:table-cell text-foreground font-medium">
@@ -152,6 +159,9 @@ export function LoanTable() {
                         <TableCell className="hidden lg:table-cell">
                           <Skeleton className="h-5 w-[100px]" />
                         </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <Skeleton className="h-5 w-[60px]" />
+                        </TableCell>
                         <TableCell className="hidden xl:table-cell">
                           <Skeleton className="h-5 w-[80px]" />
                         </TableCell>
@@ -187,7 +197,7 @@ export function LoanTable() {
                     ))
                   ) : currentItems.length === 0 ? (
                     <TableRow className="border-border">
-                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <DollarSign className="h-10 w-10 text-muted-foreground/30" />
                           <p className="text-sm">
@@ -213,6 +223,7 @@ export function LoanTable() {
                         key={`loan-row-${loan.id}-${index}`}
                         loan={loan}
                         index={index}
+                        newsSummary={newsSummary[loan.id]}
                         onDelete={handleDelete}
                         onArchive={handleArchive}
                         onPrintContract={handlePrintContract}

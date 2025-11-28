@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,12 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { formatCurrency, formatDate, cn, calculatePartialInstallmentDebt } from "@/lib/utils"
 import {
     User,
@@ -38,6 +45,7 @@ import {
     Gavel,
     Navigation,
     Activity,
+    Newspaper,
 } from "lucide-react"
 
 import { LoanDetails } from "../loan-details"
@@ -46,6 +54,7 @@ import { LoanForm } from "../LoanForm"
 import { UpdateVehicleStatusDialog } from "./UpdateVehicleStatusDialog"
 import { ArchivedLoansDialog } from "./ArchivedLoansDialog"
 import { ChangeLoanStatusDialog } from "./ChangeLoanStatusDialog"
+import { LoanActiveNewsDialog } from "./LoanActiveNewsDialog"
 import { Loan } from "@/lib/types"
 import { useResourcePermissions } from "@/hooks/useResourcePermissions"
 import { Resource } from "@/lib/types/permissions"
@@ -54,17 +63,22 @@ import { Resource } from "@/lib/types/permissions"
 interface LoanTableRowProps {
     loan: Loan
     index: number
+    newsSummary?: { activeNewsCount: number; totalInstallmentsExcluded: number }
     onDelete: (id: string) => void
     onArchive: (id: string, archived: boolean) => void
     onPrintContract: (loan: Loan) => void
     onStatusUpdated?: () => void
 }
 
-export function LoanTableRow({ loan, index, onDelete, onArchive, onPrintContract, onStatusUpdated }: LoanTableRowProps) {
+export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, onPrintContract, onStatusUpdated }: LoanTableRowProps) {
     // Get permissions for loans, installments, and contracts
     const loanPermissions = useResourcePermissions(Resource.LOAN)
     const installmentPermissions = useResourcePermissions(Resource.INSTALLMENT)
     const contractPermissions = useResourcePermissions(Resource.CONTRACT)
+
+    // Use news summary from props (batch loaded from parent)
+    const activeNewsCount = newsSummary?.activeNewsCount ?? 0
+    const totalInstallmentsExcluded = newsSummary?.totalInstallmentsExcluded ?? 0
 
     const getStatusBadge = (status: string, archived: boolean) => {
         if (archived) {
@@ -215,6 +229,46 @@ export function LoanTableRow({ loan, index, onDelete, onArchive, onPrintContract
             </TableCell>
             <TableCell className="hidden lg:table-cell">
                 {getVehicleStatusBadge(loan.vehicle?.status || loan.motorcycle?.status)}
+            </TableCell>
+            {/* Novedades Column */}
+            <TableCell className="hidden lg:table-cell">
+                <LoanActiveNewsDialog
+                    loanId={loan.id}
+                    vehicleInfo={`${loan.vehicle?.model || loan.motorcycle?.model} - ${loan.vehicle?.plate || loan.motorcycle?.plate}`}
+                >
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className={`h-8 px-2 gap-1.5 ${activeNewsCount > 0 ? "hover:bg-amber-500/10" : "hover:bg-muted"}`}
+                                >
+                                    <Newspaper className={`h-4 w-4 ${activeNewsCount > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
+                                    {activeNewsCount > 0 ? (
+                                        <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-xs">
+                                            {activeNewsCount}
+                                        </Badge>
+                                    ) : (
+                                        <span className="text-muted-foreground text-xs">0</span>
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {activeNewsCount > 0 ? (
+                                    <>
+                                        <p>{activeNewsCount} {activeNewsCount === 1 ? "novedad activa" : "novedades activas"}</p>
+                                        {totalInstallmentsExcluded > 0 && (
+                                            <p className="text-amber-500">{totalInstallmentsExcluded} cuotas excluidas</p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p>Sin novedades activas</p>
+                                )}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </LoanActiveNewsDialog>
             </TableCell>
             <TableCell className="hidden xl:table-cell">
                 {(() => {
@@ -402,6 +456,22 @@ export function LoanTableRow({ loan, index, onDelete, onArchive, onPrintContract
                                 Generar contrato
                             </DropdownMenuItem>
                         )}
+
+                        {/* View active news */}
+                        <LoanActiveNewsDialog
+                            loanId={loan.id}
+                            vehicleInfo={`${loan.vehicle?.model || loan.motorcycle?.model} - ${loan.vehicle?.plate || loan.motorcycle?.plate}`}
+                        >
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <Newspaper className="mr-2 h-4 w-4" />
+                                Ver novedades
+                                {activeNewsCount > 0 && (
+                                    <Badge variant="secondary" className="ml-auto text-xs bg-amber-500/20 text-amber-500">
+                                        {activeNewsCount}
+                                    </Badge>
+                                )}
+                            </DropdownMenuItem>
+                        </LoanActiveNewsDialog>
 
                         {/* Edit loan - requires LOAN.EDIT and loan not archived */}
                         {!loan.archived && loanPermissions.canEdit && (

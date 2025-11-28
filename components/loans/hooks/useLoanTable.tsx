@@ -4,9 +4,13 @@ import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { HttpService } from "@/lib/http"
 import { Loan } from "@/lib/types"
+import { NewsService } from "@/lib/services/news.service"
+
+export type NewsSummary = Record<string, { activeNewsCount: number; totalInstallmentsExcluded: number }>
 
 export function useLoanTable() {
     const [loans, setLoans] = useState<Loan[]>([])
+    const [newsSummary, setNewsSummary] = useState<NewsSummary>({})
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
@@ -63,6 +67,19 @@ export function useLoanTable() {
                 archived: loan.archived ?? false, // Default to false if not provided
             }))
             setLoans(mappedLoans)
+
+            // Fetch news summary for all loans in a single batch request
+            if (mappedLoans.length > 0) {
+                try {
+                    const loanIds = mappedLoans.map(loan => loan.id)
+                    const summary = await NewsService.getActiveNewsSummaryBatch(loanIds)
+                    setNewsSummary(summary)
+                } catch (newsError) {
+                    console.error("Error fetching news summary:", newsError)
+                    // Don't fail the entire fetch if news summary fails
+                    setNewsSummary({})
+                }
+            }
         } catch (error) {
             console.error("Error al obtener contratos:", error)
             toast({
@@ -486,6 +503,7 @@ export function useLoanTable() {
     return {
         // State
         loans,
+        newsSummary,
         loading,
         searchTerm,
         currentPage,

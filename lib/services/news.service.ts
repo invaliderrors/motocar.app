@@ -120,6 +120,21 @@ export class NewsService {
         return response.data;
     }
 
+    static async getActiveNewsSummaryBatch(
+        loanIds: string[]
+    ): Promise<Record<string, { activeNewsCount: number; totalInstallmentsExcluded: number }>> {
+        const response = await HttpService.post<
+            Record<string, { activeNewsCount: number; totalInstallmentsExcluded: number }>
+        >(
+            "/api/v1/news/batch/active-news-summary",
+            { loanIds },
+            {
+                headers: this.getAuthHeader(),
+            }
+        );
+        return response.data;
+    }
+
     static async update(id: string, data: UpdateNewsDto): Promise<News> {
         const response = await HttpService.patch<News>(`/api/v1/news/${id}`, data, {
             headers: this.getAuthHeader(),
