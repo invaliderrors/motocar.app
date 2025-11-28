@@ -40,7 +40,7 @@ export function LoanInformationCard({ loan }: LoanInformationCardProps) {
                     </div>
                     <div>
                         <p className="text-[10px] font-medium text-blue-600/70 dark:text-blue-400/70">Próxima cuota</p>
-                        <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">#{loan.nextInstallmentNumber}</p>
+                        <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">#{loan.nextInstallmentNumber.toFixed(2)}</p>
                     </div>
                 </div>
             </CardContent>
