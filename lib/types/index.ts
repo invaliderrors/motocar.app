@@ -59,8 +59,11 @@ export enum VehicleType {
 
 export enum VehicleStatus {
     IN_CIRCULATION = "IN_CIRCULATION",
+    NOT_IN_CIRCULATION = "NOT_IN_CIRCULATION",
     IN_WORKSHOP = "IN_WORKSHOP",
     SEIZED_BY_PROSECUTOR = "SEIZED_BY_PROSECUTOR",
+    SEIZED_BY_TRANSIT = "SEIZED_BY_TRANSIT",
+    FINALIZED = "FINALIZED",
 }
 
 type Vehicle = {

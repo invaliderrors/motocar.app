@@ -196,17 +196,29 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                                                     return `${installments} cuotas (calculado desde fechas)`
                                                 }
                                                 
-                                                // Otherwise use month-based calculation
-                                                const getInstallments = (months: number, freq: string) => {
+                                                // Calculate exact days from start date and months
+                                                const getInstallments = (months: number, freq: string, startDate?: string) => {
+                                                    // If we have a start date, calculate exact days for daily
+                                                    if (startDate && freq === "DAILY") {
+                                                        const start = new Date(startDate)
+                                                        const end = new Date(start)
+                                                        end.setMonth(end.getMonth() + months)
+                                                        
+                                                        const diffTime = Math.abs(end.getTime() - start.getTime())
+                                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                                                        return Math.max(1, diffDays)
+                                                    }
+                                                    
                                                     switch (freq) {
-                                                        case "DAILY": return months * 30
-                                                        case "WEEKLY": return months * 4
-                                                        case "BIWEEKLY": return months * 2
+                                                        case "DAILY": return Math.round(months * 30.44)
+                                                        case "WEEKLY": return Math.round(months * 4.33)
+                                                        case "BIWEEKLY": return Math.round(months * 2.17)
                                                         case "MONTHLY": return months
                                                         default: return months
                                                     }
                                                 }
-                                                return `≈ ${getInstallments(formValues.loanTermMonths, formValues.paymentFrequency)} cuotas totales`
+                                                const installments = getInstallments(formValues.loanTermMonths, formValues.paymentFrequency, formValues.startDate)
+                                                return `${installments} cuotas totales`
                                             })()}
                                         </span>
                                     )}

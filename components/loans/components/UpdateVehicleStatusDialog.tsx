@@ -51,6 +51,24 @@ const VEHICLE_STATUS_OPTIONS = [
     icon: Gavel,
     color: "text-red-600",
   },
+  {
+    value: VehicleStatus.SEIZED_BY_TRANSIT,
+    label: "Incautado por Tránsito",
+    icon: Gavel,
+    color: "text-red-600",
+  },
+  {
+    value: VehicleStatus.NOT_IN_CIRCULATION,
+    label: "No está en circulación",
+    icon: Navigation,
+    color: "text-yellow-600",
+  },
+  {
+    value: VehicleStatus.FINALIZED,
+    label: "Finalizado",
+    icon: Navigation,
+    color: "text-gray-600",
+  }
 ]
 
 export function UpdateVehicleStatusDialog({

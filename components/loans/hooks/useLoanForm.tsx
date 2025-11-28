@@ -32,14 +32,26 @@ interface UseLoanFormProps {
 }
 
 // Helper functions
-const getInstallmentsFromMonths = (months: number, frequency: string): number => {
+const getInstallmentsFromMonths = (months: number, frequency: string, startDate?: string): number => {
+    // If we have a start date, calculate exact days
+    if (startDate && frequency === "DAILY") {
+        const start = new Date(startDate)
+        const end = new Date(start)
+        end.setMonth(end.getMonth() + months)
+        
+        const diffTime = Math.abs(end.getTime() - start.getTime())
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        return Math.max(1, diffDays)
+    }
+    
     switch (frequency) {
         case "DAILY":
-            return months * 30
+            // Fallback: calculate approximate based on average days per month (30.44)
+            return Math.round(months * 30.44)
         case "WEEKLY":
-            return months * 4
+            return Math.round(months * 4.33) // ~4.33 weeks per month
         case "BIWEEKLY":
-            return months * 2
+            return Math.round(months * 2.17) // ~2.17 bi-weeks per month
         case "MONTHLY":
         default:
             return months
@@ -196,7 +208,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                     values.paymentFrequency
                 )
             } else {
-                totalInstallments = getInstallmentsFromMonths(loanTermMonths, values.paymentFrequency)
+                totalInstallments = getInstallmentsFromMonths(loanTermMonths, values.paymentFrequency, values.startDate)
             }
 
             if (values.interestType === "FIXED") {
