@@ -3,10 +3,14 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calculator, Calendar, Clock, Percent, Navigation, CalendarDays, X } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Calculator, Calendar, Clock, Percent, CalendarDays, Navigation } from "lucide-react"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { cn } from "@/lib/utils"
 import type { Control } from "react-hook-form"
 
 interface LoanFormTermsCardProps {
@@ -31,18 +35,45 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                         control={control}
                         name="startDate"
                         render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="flex flex-col">
                                 <FormLabel>Fecha de Inicio</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <CalendarDays className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            type="date"
-                                            className="pl-9"
-                                            {...field}
+                                <Popover modal={true}>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarDays className="mr-2 h-4 w-4" />
+                                                {field.value ? (
+                                                    format(new Date(field.value + "T12:00:00"), "PPP", { locale: es })
+                                                ) : (
+                                                    <span>Seleccionar fecha</span>
+                                                )}
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                                        <CalendarComponent
+                                            mode="single"
+                                            selected={field.value ? new Date(field.value + "T12:00:00") : undefined}
+                                            onSelect={(date) => {
+                                                if (date) {
+                                                    // Format as YYYY-MM-DD without timezone conversion
+                                                    const year = date.getFullYear()
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                                                    const day = String(date.getDate()).padStart(2, '0')
+                                                    field.onChange(`${year}-${month}-${day}`)
+                                                }
+                                            }}
+                                            initialFocus
                                         />
-                                    </div>
-                                </FormControl>
+                                    </PopoverContent>
+                                </Popover>
                                 <FormDescription className="text-xs">Fecha de inicio del contrato</FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -52,37 +83,24 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                         control={control}
                         name="endDate"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Fecha de Finalización (Opcional)</FormLabel>
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Fecha de Finalización</FormLabel>
                                 <FormControl>
-                                    <div className="relative flex gap-2">
-                                        <div className="relative flex-1">
-                                            <CalendarDays className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                type="date"
-                                                className="pl-9"
-                                                value={field.value || ""}
-                                                onChange={(e) => {
-                                                    field.onChange(e.target.value || null)
-                                                }}
-                                            />
-                                        </div>
-                                        {field.value && (
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="icon"
-                                                className="h-10 w-10 shrink-0"
-                                                onClick={() => field.onChange(null)}
-                                                title="Limpiar fecha"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full pl-3 text-left font-normal bg-muted cursor-not-allowed"
+                                        disabled
+                                    >
+                                        <CalendarDays className="mr-2 h-4 w-4" />
+                                        {field.value ? (
+                                            format(new Date(field.value), "PPP", { locale: es })
+                                        ) : (
+                                            <span className="text-muted-foreground">Se calculará automáticamente</span>
                                         )}
-                                    </div>
+                                    </Button>
                                 </FormControl>
                                 <FormDescription className="text-xs">
-                                    Si no se proporciona, se calculará automáticamente
+                                    Calculada automáticamente según el plazo
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -209,16 +227,14 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                                         <Input
                                             type="text"
                                             step="0.01"
-                                            className="pl-9"
-                                            value={formatNumber(field.value)}
-                                            onChange={(e) => {
-                                                const value = parseFormattedNumber(e.target.value)
-                                                field.onChange(value)
-                                            }}
+                                            className="pl-9 bg-muted cursor-not-allowed"
+                                            value="0"
+                                            disabled
+                                            readOnly
                                         />
                                     </div>
                                 </FormControl>
-                                <FormDescription className="text-xs">Tasa de interés anual</FormDescription>
+                                <FormDescription className="text-xs">Tasa de interés fija al 0%</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -230,20 +246,9 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                             <FormItem className="space-y-3">
                                 <FormLabel>Tipo de Interés</FormLabel>
                                 <FormControl>
-                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="FIXED" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Fijo (Simple)</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="COMPOUND" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Compuesto</FormLabel>
-                                        </FormItem>
-                                    </RadioGroup>
+                                    <div className="flex items-center space-x-2 h-10 px-3 rounded-md border bg-muted cursor-not-allowed">
+                                        <span className="text-sm text-muted-foreground">Fijo (Simple)</span>
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
