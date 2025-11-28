@@ -1,137 +1,43 @@
 "use client"
 
 import { UseFormReturn } from "react-hook-form"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { CalendarIcon } from "lucide-react"
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
 import { NewsFormValues } from "../../hooks/form"
+import { DateModeSelector } from "./DateModeSelector"
+import { SingleDateField } from "./SingleDateField"
+import { RangeDateFields } from "./RangeDateFields"
+import { MultipleDatesField } from "./MultipleDatesField"
+import { RecurringDateFields } from "./RecurringDateFields"
 
 interface DateFieldsProps {
     form: UseFormReturn<NewsFormValues>
 }
 
-// Helper to format date to YYYY-MM-DD using local date components (avoids timezone issues)
-function formatDateString(date: Date): string {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const day = String(date.getDate()).padStart(2, "0")
-    return `${year}-${month}-${day}`
-}
-
-// Helper to parse YYYY-MM-DD string to Date (local time)
-function parseDateString(dateString: string | undefined): Date | undefined {
-    if (!dateString) return undefined
-    const [year, month, day] = dateString.split("-").map(Number)
-    return new Date(year, month - 1, day)
-}
-
 export function DateFields({ form }: DateFieldsProps) {
-    return (
-        <div className="grid grid-cols-2 gap-4">
-            <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                        <FormLabel>Fecha Inicio</FormLabel>
-                        <Popover modal={true}>
-                            <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                        variant="outline"
-                                        className={cn(
-                                            "w-full pl-3 text-left font-normal",
-                                            !field.value && "text-muted-foreground"
-                                        )}
-                                    >
-                                        {field.value ? (
-                                            format(parseDateString(field.value)!, "dd/MM/yyyy", { locale: es })
-                                        ) : (
-                                            <span>Seleccionar</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={parseDateString(field.value)}
-                                    onSelect={(date) => {
-                                        if (date) {
-                                            field.onChange(formatDateString(date))
-                                        }
-                                    }}
-                                    locale={es}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
+    const dateSelectionMode = form.watch("dateSelectionMode")
 
-            <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                        <FormLabel>Fecha Fin</FormLabel>
-                        <Popover modal={true}>
-                            <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                        variant="outline"
-                                        className={cn(
-                                            "w-full pl-3 text-left font-normal",
-                                            !field.value && "text-muted-foreground"
-                                        )}
-                                    >
-                                        {field.value ? (
-                                            format(parseDateString(field.value)!, "dd/MM/yyyy", { locale: es })
-                                        ) : (
-                                            <span>Opcional</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={parseDateString(field.value)}
-                                    onSelect={(date) => {
-                                        if (date) {
-                                            field.onChange(formatDateString(date))
-                                        } else {
-                                            field.onChange("")
-                                        }
-                                    }}
-                                    locale={es}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                    </FormItem>
+    return (
+        <div className="space-y-4">
+            {/* Date Mode Selector */}
+            <DateModeSelector form={form} />
+
+            {/* Conditional Date Fields based on mode */}
+            <div className="p-4 border rounded-lg bg-muted/30">
+                {dateSelectionMode === "single" && (
+                    <SingleDateField form={form} />
                 )}
-            />
+
+                {dateSelectionMode === "range" && (
+                    <RangeDateFields form={form} />
+                )}
+
+                {dateSelectionMode === "multiple" && (
+                    <MultipleDatesField form={form} />
+                )}
+
+                {dateSelectionMode === "recurring" && (
+                    <RecurringDateFields form={form} />
+                )}
+            </div>
         </div>
     )
 }

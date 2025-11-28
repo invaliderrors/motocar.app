@@ -9,6 +9,9 @@ import { NewsService, CreateNewsDto } from "@/lib/services/news.service"
 import { useStore } from "@/contexts/StoreContext"
 import { useToast } from "@/components/ui/use-toast"
 
+// Date selection mode types
+export type DateSelectionMode = "single" | "range" | "multiple" | "recurring"
+
 export const newsSchema = z.object({
     type: z.nativeEnum(NewsType),
     category: z.nativeEnum(NewsCategory),
@@ -16,8 +19,16 @@ export const newsSchema = z.object({
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
     notes: z.string().optional(),
     startDate: z.string().min(1, "La fecha de inicio es requerida"),
-    endDate: z.string().min(1, "La fecha de fin es requerida"),
-    loanId: z.string().min(1, "El contrato es requerido"),
+    endDate: z.string().optional(),
+    loanId: z.string().optional(),
+    // Date selection mode
+    dateSelectionMode: z.enum(["single", "range", "multiple", "recurring"]).default("single"),
+    // Recurring configuration
+    isRecurring: z.boolean().default(false),
+    recurringDay: z.number().min(1).max(31).optional(),
+    recurringMonths: z.array(z.number().min(1).max(12)).default([]),
+    // Multiple dates
+    skippedDates: z.array(z.string()).default([]),
 })
 
 export type NewsFormValues = z.infer<typeof newsSchema>
@@ -44,26 +55,53 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
             startDate: new Date().toISOString().split("T")[0],
             endDate: "",
             loanId: "",
+            dateSelectionMode: "single",
+            isRecurring: false,
+            recurringDay: undefined,
+            recurringMonths: [],
+            skippedDates: [],
         },
     })
 
     const newsType = form.watch("type")
     const startDate = form.watch("startDate")
     const endDate = form.watch("endDate")
+    const dateSelectionMode = form.watch("dateSelectionMode")
+    const skippedDates = form.watch("skippedDates")
 
-    // Auto-calculate days unavailable based on start and end dates (inclusive)
-    // Example: Nov 25 to Nov 28 = 4 days (25, 26, 27, 28)
+    // Calculate days unavailable based on date selection mode
     const calculateDaysUnavailable = (): number => {
-        if (!startDate || !endDate) return 0
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-        const diffTime = end.getTime() - start.getTime()
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // +1 to include both start and end dates
-        return diffDays > 0 ? diffDays : 0
+        switch (dateSelectionMode) {
+            case "single":
+                return 1
+            case "range":
+                if (!startDate || !endDate) return 0
+                const start = new Date(startDate)
+                const end = new Date(endDate)
+                const diffTime = end.getTime() - start.getTime()
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+                return diffDays > 0 ? diffDays : 0
+            case "multiple":
+                return skippedDates.length
+            case "recurring":
+                return 0 // Recurring dates are calculated dynamically
+            default:
+                return 0
+        }
     }
 
     useEffect(() => {
         if (news) {
+            // Determine date selection mode from existing data
+            let mode: DateSelectionMode = "single"
+            if (news.isRecurring) {
+                mode = "recurring"
+            } else if (news.skippedDates && news.skippedDates.length > 1) {
+                mode = "multiple"
+            } else if (news.endDate && news.startDate !== news.endDate) {
+                mode = "range"
+            }
+
             form.reset({
                 type: news.type,
                 category: news.category,
@@ -73,6 +111,11 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 startDate: new Date(news.startDate).toISOString().split("T")[0],
                 endDate: news.endDate ? new Date(news.endDate).toISOString().split("T")[0] : "",
                 loanId: news.loanId || "",
+                dateSelectionMode: mode,
+                isRecurring: news.isRecurring || false,
+                recurringDay: news.recurringDay || undefined,
+                recurringMonths: news.recurringMonths || [],
+                skippedDates: news.skippedDates?.map(d => new Date(d).toISOString().split("T")[0]) || [],
             })
         } else {
             form.reset({
@@ -84,6 +127,11 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 startDate: new Date().toISOString().split("T")[0],
                 endDate: "",
                 loanId: "",
+                dateSelectionMode: "single",
+                isRecurring: false,
+                recurringDay: undefined,
+                recurringMonths: [],
+                skippedDates: [],
             })
         }
     }, [news, open])
@@ -94,17 +142,47 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
         try {
             setLoading(true)
 
+            // Build data based on date selection mode
+            let finalSkippedDates: string[] = []
+            let autoCalc = false
+            let finalEndDate: string | undefined = undefined
+
+            switch (values.dateSelectionMode) {
+                case "single":
+                    finalSkippedDates = [values.startDate]
+                    break
+                case "range":
+                    autoCalc = true
+                    finalEndDate = values.endDate
+                    break
+                case "multiple":
+                    finalSkippedDates = values.skippedDates
+                    break
+                case "recurring":
+                    // Recurring mode uses recurringDay and recurringMonths
+                    break
+            }
+
             const daysUnavailable = calculateDaysUnavailable()
+
             const data: CreateNewsDto = {
-                ...values,
+                type: values.type,
+                category: values.category,
+                title: values.title,
+                description: values.description,
+                notes: values.notes || undefined,
+                startDate: values.startDate,
+                endDate: finalEndDate,
                 storeId: currentStore.id,
                 loanId: values.type === NewsType.LOAN_SPECIFIC ? values.loanId : undefined,
-                endDate: values.endDate || undefined,
-                notes: values.notes || undefined,
                 isActive: true,
-                autoCalculateInstallments: true,
+                autoCalculateInstallments: autoCalc,
                 daysUnavailable: daysUnavailable > 0 ? daysUnavailable : undefined,
                 installmentsToSubtract: daysUnavailable > 0 ? daysUnavailable : undefined,
+                isRecurring: values.dateSelectionMode === "recurring",
+                recurringDay: values.dateSelectionMode === "recurring" ? values.recurringDay : undefined,
+                recurringMonths: values.dateSelectionMode === "recurring" ? values.recurringMonths : [],
+                skippedDates: finalSkippedDates,
             }
 
             if (news) {

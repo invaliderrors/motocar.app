@@ -1,2 +1,2 @@
-export { useNewsForm, newsSchema, type NewsFormValues } from "./useNewsForm"
+export { useNewsForm, newsSchema, type NewsFormValues, type DateSelectionMode } from "./useNewsForm"
 export { useLoansData } from "./useLoansData"

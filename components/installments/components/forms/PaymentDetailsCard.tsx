@@ -10,10 +10,16 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { DollarSign, CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File } from "lucide-react"
+import { DollarSign, CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File, CalendarX } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { Control } from "react-hook-form"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 // Payment coverage response type from API
 interface PaymentCoverageResponse {
@@ -31,6 +37,8 @@ interface PaymentCoverageResponse {
     amountNeededToCatchUp: number
     willBeCurrentAfterPayment: boolean
     daysAheadAfterPayment: number
+    skippedDatesCount?: number
+    skippedDates?: string[]
 }
 
 interface FileAttachmentProps {
@@ -82,9 +90,45 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     return (
         <Card className="border-primary/20 shadow-sm">
             <CardHeader className="pb-2 pt-3 px-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                    Detalles del Pago
+                <CardTitle className="text-sm flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        Detalles del Pago
+                    </span>
+                    {/* Skipped Dates Badge in Header */}
+                    {paymentCoverage?.skippedDatesCount && paymentCoverage.skippedDatesCount > 0 && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 cursor-help">
+                                        <CalendarX className="h-3 w-3 mr-1" />
+                                        {paymentCoverage.skippedDatesCount} excluido{paymentCoverage.skippedDatesCount > 1 ? 's' : ''}
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="max-w-xs">
+                                    <div className="text-xs">
+                                        <p className="font-semibold mb-1">Días no cobrados (novedades):</p>
+                                        {paymentCoverage.skippedDates && paymentCoverage.skippedDates.length > 0 ? (
+                                            <div className="space-y-0.5">
+                                                {paymentCoverage.skippedDates.slice(0, 7).map((date, idx) => (
+                                                    <p key={idx} className="text-muted-foreground">
+                                                        • {format(new Date(date), "EEEE dd MMM", { locale: es })}
+                                                    </p>
+                                                ))}
+                                                {paymentCoverage.skippedDates.length > 7 && (
+                                                    <p className="text-muted-foreground font-medium">
+                                                        +{paymentCoverage.skippedDates.length - 7} días más...
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-muted-foreground">Festivos o cierres de tienda</p>
+                                        )}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pb-3 space-y-3">

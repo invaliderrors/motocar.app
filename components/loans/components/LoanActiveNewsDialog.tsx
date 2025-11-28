@@ -27,6 +27,8 @@ import {
     Newspaper,
     CheckCircle2,
     XCircle,
+    CalendarX,
+    Repeat,
 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -37,6 +39,11 @@ interface LoanNewsDialogProps {
     children?: ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
+}
+
+interface SkippedDatesResponse {
+    dates: string[]
+    news: Array<{ id: string; title: string; category: string; dates: string[]; isRecurring: boolean }>
 }
 
 const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof Wrench; color: string }> = {
@@ -54,6 +61,7 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
     const [internalOpen, setInternalOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [news, setNews] = useState<News[]>([])
+    const [skippedDatesData, setSkippedDatesData] = useState<SkippedDatesResponse | null>(null)
 
     // Use controlled or internal state
     const isControlled = controlledOpen !== undefined
@@ -63,6 +71,7 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
     useEffect(() => {
         if (open) {
             loadAllNews()
+            loadSkippedDates()
         }
     }, [open, loanId])
 
@@ -78,11 +87,24 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
         }
     }
 
+    const loadSkippedDates = async () => {
+        try {
+            const data = await NewsService.getSkippedDatesForLoan(loanId)
+            setSkippedDatesData(data)
+        } catch (error) {
+            console.error("Error loading skipped dates:", error)
+        }
+    }
+
     const formatDateRange = (startDate: string, endDate?: string | null) => {
         const start = format(new Date(startDate), "dd MMM yyyy", { locale: es })
         if (!endDate) return start
         const end = format(new Date(endDate), "dd MMM yyyy", { locale: es })
         return `${start} - ${end}`
+    }
+
+    const formatSkippedDate = (dateStr: string) => {
+        return format(new Date(dateStr), "EEE dd MMM yyyy", { locale: es })
     }
 
     // Check if a news item is currently active
@@ -95,6 +117,7 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
     // Calculate summary
     const activeNews = news.filter(isNewsCurrentlyActive)
     const totalInstallmentsExcluded = activeNews.reduce((sum, item) => sum + (item.installmentsToSubtract || 0), 0)
+    const totalSkippedDates = skippedDatesData?.dates.length || 0
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -116,7 +139,7 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
 
                 {/* Summary */}
                 {!loading && news.length > 0 && (
-                    <div className="flex items-center gap-4 p-3 bg-muted/50 border rounded-lg">
+                    <div className="flex flex-wrap items-center gap-4 p-3 bg-muted/50 border rounded-lg">
                         <div className="flex items-center gap-2">
                             <Newspaper className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm font-medium">
@@ -130,16 +153,44 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
                                 <strong className="text-green-500">{activeNews.length}</strong> activas
                             </span>
                         </div>
-                        {totalInstallmentsExcluded > 0 && (
+                        {totalSkippedDates > 0 && (
                             <>
                                 <Separator orientation="vertical" className="h-4" />
                                 <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-amber-500" />
+                                    <CalendarX className="h-4 w-4 text-red-500" />
                                     <span className="text-sm">
-                                        <strong className="text-amber-500">{totalInstallmentsExcluded}</strong> cuotas excluidas
+                                        <strong className="text-red-500">{totalSkippedDates}</strong> fechas excluidas
                                     </span>
                                 </div>
                             </>
+                        )}
+                    </div>
+                )}
+
+                {/* Skipped Dates Section */}
+                {skippedDatesData && skippedDatesData.dates.length > 0 && (
+                    <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg space-y-3">
+                        <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                            <CalendarX className="h-5 w-5" />
+                            <span className="font-semibold">Fechas Excluidas (No se cobran)</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {skippedDatesData.dates.slice(0, 20).map((date, idx) => (
+                                <Badge key={idx} variant="outline" className="text-red-600 border-red-300 dark:border-red-700">
+                                    {formatSkippedDate(date)}
+                                </Badge>
+                            ))}
+                            {skippedDatesData.dates.length > 20 && (
+                                <Badge variant="outline" className="text-muted-foreground">
+                                    +{skippedDatesData.dates.length - 20} más
+                                </Badge>
+                            )}
+                        </div>
+                        {skippedDatesData.news.some(n => n.isRecurring) && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Repeat className="h-4 w-4" />
+                                <span>Incluye fechas recurrentes (próximos 12 meses)</span>
+                            </div>
                         )}
                     </div>
                 )}
@@ -171,6 +222,7 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
                                 const config = NEWS_CATEGORY_CONFIG[item.category]
                                 const Icon = config.icon
                                 const isActive = isNewsCurrentlyActive(item)
+                                const newsSkippedDates = skippedDatesData?.news.find(n => n.id === item.id)?.dates || []
                                 
                                 return (
                                     <div
@@ -196,6 +248,12 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
                                                         Inactiva
                                                     </Badge>
                                                 )}
+                                                {item.isRecurring && (
+                                                    <Badge variant="outline" className="text-blue-500 border-blue-500/50">
+                                                        <Repeat className="h-3 w-3 mr-1" />
+                                                        Recurrente
+                                                    </Badge>
+                                                )}
                                             </div>
                                             {item.daysUnavailable && (
                                                 <Badge variant="outline" className="text-amber-500 border-amber-500/50">
@@ -208,6 +266,28 @@ export function LoanActiveNewsDialog({ loanId, vehicleInfo, children, open: cont
                                         <p className="text-sm text-muted-foreground">
                                             {item.description}
                                         </p>
+
+                                        {/* Skipped Dates for this news */}
+                                        {newsSkippedDates.length > 0 && (
+                                            <div className="bg-red-50 dark:bg-red-950/30 p-2 rounded border border-red-200 dark:border-red-900">
+                                                <div className="flex items-center gap-2 mb-2 text-sm font-medium text-red-600 dark:text-red-400">
+                                                    <CalendarX className="h-4 w-4" />
+                                                    Fechas excluidas:
+                                                </div>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {newsSkippedDates.slice(0, 10).map((date, idx) => (
+                                                        <Badge key={idx} variant="secondary" className="text-xs">
+                                                            {formatSkippedDate(date)}
+                                                        </Badge>
+                                                    ))}
+                                                    {newsSkippedDates.length > 10 && (
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            +{newsSkippedDates.length - 10} más
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Notes */}
                                         {item.notes && (

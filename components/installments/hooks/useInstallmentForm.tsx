@@ -30,6 +30,8 @@ interface PaymentCoverageResponse {
     amountNeededToCatchUp: number
     willBeCurrentAfterPayment: boolean
     daysAheadAfterPayment: number
+    skippedDatesCount: number
+    skippedDates: string[]
 }
 
 const installmentSchema = z.object({

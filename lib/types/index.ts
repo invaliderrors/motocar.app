@@ -441,6 +441,12 @@ export type News = {
     autoCalculateInstallments: boolean
     daysUnavailable: number | null
     installmentsToSubtract: number | null
+    // Recurring date configuration
+    isRecurring: boolean
+    recurringDay: number | null
+    recurringMonths: number[]
+    skippedDates: string[]
+    // Vehicle type filter
     vehicleType: VehicleType | null
     storeId: string
     store?: Store

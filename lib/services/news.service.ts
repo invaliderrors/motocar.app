@@ -16,6 +16,11 @@ export interface CreateNewsDto {
     autoCalculateInstallments?: boolean;
     daysUnavailable?: number;
     installmentsToSubtract?: number;
+    // Recurring date configuration
+    isRecurring?: boolean;
+    recurringDay?: number;
+    recurringMonths?: number[];
+    skippedDates?: string[];
 }
 
 export interface UpdateNewsDto {
@@ -31,6 +36,11 @@ export interface UpdateNewsDto {
     autoCalculateInstallments?: boolean;
     daysUnavailable?: number;
     installmentsToSubtract?: number;
+    // Recurring date configuration
+    isRecurring?: boolean;
+    recurringDay?: number;
+    recurringMonths?: number[];
+    skippedDates?: string[];
 }
 
 export interface QueryNewsDto {
@@ -110,6 +120,19 @@ export class NewsService {
         return response.data;
     }
 
+    static async getSkippedDatesForLoan(loanId: string): Promise<{
+        dates: string[];
+        news: Array<{ id: string; title: string; category: string; dates: string[]; isRecurring: boolean }>;
+    }> {
+        const response = await HttpService.get<{
+            dates: string[];
+            news: Array<{ id: string; title: string; category: string; dates: string[]; isRecurring: boolean }>;
+        }>(`/api/v1/news/loan/${loanId}/skipped-dates`, {
+            headers: this.getAuthHeader(),
+        });
+        return response.data;
+    }
+
     static async getActiveStoreNews(storeId: string): Promise<News[]> {
         const response = await HttpService.get<News[]>(`/api/v1/news/store/${storeId}/active`, {
             headers: this.getAuthHeader(),
@@ -129,11 +152,24 @@ export class NewsService {
 
     static async getNewsSummaryBatch(
         loanIds: string[]
-    ): Promise<Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }>> {
+    ): Promise<Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number; skippedDatesCount: number }>> {
         const response = await HttpService.post<
-            Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }>
+            Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number; skippedDatesCount: number }>
         >(
             "/api/v1/news/batch/active-news-summary",
+            { loanIds },
+            {
+                headers: this.getAuthHeader(),
+            }
+        );
+        return response.data;
+    }
+
+    static async getSkippedDatesBatch(
+        loanIds: string[]
+    ): Promise<Record<string, string[]>> {
+        const response = await HttpService.post<Record<string, string[]>>(
+            "/api/v1/news/batch/skipped-dates",
             { loanIds },
             {
                 headers: this.getAuthHeader(),

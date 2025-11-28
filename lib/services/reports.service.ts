@@ -103,6 +103,7 @@ export interface MissingInstallmentData {
   lastPaymentWasLate: boolean
   daysSinceLastPayment: number
   missedInstallments: number
+  skippedDates: number
   installmentAmount: number
   gpsAmount: number
   totalMissedAmount: number

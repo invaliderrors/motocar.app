@@ -63,7 +63,7 @@ import { Resource } from "@/lib/types/permissions"
 interface LoanTableRowProps {
     loan: Loan
     index: number
-    newsSummary?: { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }
+    newsSummary?: { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number; skippedDatesCount: number }
     onDelete: (id: string) => void
     onArchive: (id: string, archived: boolean) => void
     onPrintContract: (loan: Loan) => void
@@ -83,6 +83,7 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
     const totalNewsCount = newsSummary?.totalNewsCount ?? 0
     const activeNewsCount = newsSummary?.activeNewsCount ?? 0
     const totalInstallmentsExcluded = newsSummary?.totalInstallmentsExcluded ?? 0
+    const skippedDatesCount = newsSummary?.skippedDatesCount ?? 0
 
     const getStatusBadge = (status: string, archived: boolean) => {
         if (archived) {
@@ -267,6 +268,9 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                                         )}
                                         {totalInstallmentsExcluded > 0 && (
                                             <p className="text-amber-500">{totalInstallmentsExcluded} cuotas excluidas</p>
+                                        )}
+                                        {skippedDatesCount > 0 && (
+                                            <p className="text-blue-500">{skippedDatesCount} fechas excluidas</p>
                                         )}
                                     </>
                                 ) : (

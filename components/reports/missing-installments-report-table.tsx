@@ -553,14 +553,32 @@ export function MissingInstallmentsReportTable({ data, onExport, includeArchived
                         </TableCell>
                         
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-red-100 dark:bg-red-900/20 p-1.5">
-                              <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
-                            </div>
-                            <span className="text-sm font-bold text-red-600">
-                              {item.missedInstallments}
-                            </span>
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                  <div className="rounded-full bg-red-100 dark:bg-red-900/20 p-1.5">
+                                    <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-red-600">
+                                      {item.missedInstallments}
+                                    </span>
+                                    {item.skippedDates > 0 && (
+                                      <span className="text-[10px] text-blue-600 dark:text-blue-400">
+                                        -{item.skippedDates} excl.
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </TooltipTrigger>
+                              {item.skippedDates > 0 && (
+                                <TooltipContent>
+                                  <p>{item.skippedDates} fechas excluidas por novedades</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         </TableCell>
                         
                         <TableCell>

@@ -6,7 +6,7 @@ import { HttpService } from "@/lib/http"
 import { Loan } from "@/lib/types"
 import { NewsService } from "@/lib/services/news.service"
 
-export type NewsSummary = Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number }>
+export type NewsSummary = Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number; skippedDatesCount: number }>
 
 export function useLoanTable() {
     const [loans, setLoans] = useState<Loan[]>([])
