@@ -1,35 +1,21 @@
-"use client"
-
-import { Newspaper } from "lucide-react"
-import { useStore } from "@/contexts/StoreContext"
 import { NewsTable } from "@/components/news/NewsTable"
+import { PageHeader } from "@/components/common/PageHeader"
+import { Newspaper, Bell } from "lucide-react"
 
 export default function NewsPage() {
-    const { currentStore } = useStore()
-
-    if (!currentStore) {
-        return (
-            <div className="container mx-auto p-6">
-                <div className="text-center py-12">
-                    <p className="text-muted-foreground">Selecciona un punto para continuar</p>
-                </div>
-            </div>
-        )
-    }
-
     return (
-        <div className="container mx-auto p-6 space-y-6">
-            <div className="flex items-center gap-3">
-                <Newspaper className="h-8 w-8 text-primary" />
-                <div>
-                    <h1 className="text-3xl font-bold">Novedades</h1>
-                    <p className="text-muted-foreground">
-                        Gestiona novedades generales y específicas de contratos
-                    </p>
-                </div>
+        <div className="flex-1 w-full overflow-hidden flex flex-col">
+            <PageHeader
+                icon={Newspaper}
+                title="Novedades"
+                subtitle="Gestión de novedades de contratos"
+                badgeIcon={Bell}
+                badgeLabel="Gestión"
+                badgeColor="amber"
+            />
+            <div className="flex-1 overflow-auto p-6 bg-gradient-to-br from-background via-background to-muted/20">
+                <NewsTable />
             </div>
-
-            <NewsTable />
         </div>
     )
 }

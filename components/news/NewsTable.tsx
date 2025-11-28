@@ -3,7 +3,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Newspaper, User, Calendar, FileText, MapPin, Clock, Activity, Settings } from "lucide-react"
+import { Newspaper, User, Calendar, FileText, Clock, Activity, Settings } from "lucide-react"
 import { NewsTableControls } from "./components/NewsTableControls"
 import { NewsTableDialogs } from "./components/NewsTableDialogs"
 import { NewsTablePagination } from "./components/NewsTablePagination"
@@ -16,6 +16,7 @@ export function NewsTable() {
         loading,
         searchTerm,
         currentPage,
+        itemsPerPage,
         totalItems,
         totalPages,
         startIndex,
@@ -23,6 +24,7 @@ export function NewsTable() {
         deleteDialogOpen,
         setSearchTerm,
         setCurrentPage,
+        setItemsPerPage,
         setDeleteDialogOpen,
         handleDelete,
         confirmDelete,
@@ -37,7 +39,7 @@ export function NewsTable() {
                 onRefresh={refreshData}
             />
 
-            <div className="flex-1 rounded-lg border border-border overflow-hidden shadow-sm">
+            <div className="flex-1 rounded-lg border border-border overflow-hidden shadow-md">
                 <div className="h-full overflow-auto">
                     <Table>
                         <TableHeader>
@@ -167,14 +169,18 @@ export function NewsTable() {
                 </div>
             </div>
 
-            <NewsTablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                onPageChange={setCurrentPage}
-            />
+            {!loading && totalItems > 0 && (
+                <NewsTablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            )}
 
             <NewsTableDialogs
                 deleteDialogOpen={deleteDialogOpen}
