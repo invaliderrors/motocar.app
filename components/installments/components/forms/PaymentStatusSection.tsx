@@ -29,6 +29,7 @@ interface PaymentCoverageInfo {
     amountNeededToCatchUp: number
     isLate: boolean
     daysAheadAfterPayment: number
+    coverageEndDate: string
 }
 
 interface PaymentStatusSectionProps {
@@ -59,14 +60,23 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
         }).format(value)
     }
 
-    // Calculate installments owed based on payment coverage
-    const installmentsOwed = paymentCoverage?.dailyRate && paymentCoverage?.amountNeededToCatchUp 
+    // Calculate installments owed/ahead based on payment coverage
+    // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead regardless of isLate
+    const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
+    const isAdvance = willBeAhead
+    const isLate = paymentCoverage?.isLate && !willBeAhead
+    
+    // For late payments, show installments owed
+    const installmentsOwed = isLate && paymentCoverage?.dailyRate && paymentCoverage?.amountNeededToCatchUp 
         ? Math.ceil(paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate)
         : 0
     
-    const amountOwed = paymentCoverage?.amountNeededToCatchUp ?? 0
-    const isLate = paymentCoverage?.isLate ?? false
-    const isAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
+    // For advance payments, show installments ahead
+    const installmentsAhead = isAdvance && paymentCoverage?.dailyRate && paymentCoverage?.daysAheadAfterPayment
+        ? Math.floor(paymentCoverage.daysAheadAfterPayment)
+        : 0
+    
+    const amountOwed = isLate ? (paymentCoverage?.amountNeededToCatchUp ?? 0) : 0
 
     const getPaymentStatus = () => {
         if (!lastInstallmentInfo && !paymentCoverage) return { status: "unknown", text: "Sin información", color: "gray" }
@@ -146,15 +156,22 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                 <div className="bg-muted/30 rounded-md p-2">
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-muted-foreground">Cuotas atrasadas:</p>
-                            <p className={`text-lg font-bold ${installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {installmentsOwed}
+                            <p className="text-xs text-muted-foreground">
+                                {isAdvance ? 'Cuotas adelantadas:' : 'Cuotas atrasadas:'}
+                            </p>
+                            <p className={`text-lg font-bold ${isAdvance ? 'text-blue-600' : installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                {isAdvance ? installmentsAhead : installmentsOwed}
                             </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-muted-foreground">Total adeudado:</p>
-                            <p className={`text-sm font-bold ${amountOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(amountOwed)}
+                            <p className="text-xs text-muted-foreground">
+                                {isAdvance ? 'Cubierto hasta:' : 'Total adeudado:'}
+                            </p>
+                            <p className={`text-sm font-bold ${isAdvance ? 'text-blue-600' : amountOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                {isAdvance && paymentCoverage 
+                                    ? format(new Date(paymentCoverage.coverageEndDate), "dd/MM/yyyy", { locale: es })
+                                    : formatCurrency(amountOwed)
+                                }
                             </p>
                         </div>
                     </div>

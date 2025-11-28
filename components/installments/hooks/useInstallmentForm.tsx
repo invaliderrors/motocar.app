@@ -511,8 +511,11 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             }
 
             // Use the calculated payment coverage from API for isLate/isAdvance
-            const isLate = paymentCoverage?.isLate ?? false
-            const isAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
+            // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead
+            // even if the coverage started from a late date (isLate from API)
+            const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
+            const isAdvance = willBeAhead
+            const isLate = paymentCoverage?.isLate && !willBeAhead
 
             const payload: Record<string, any> = {
                 loanId: values.loanId,
@@ -606,8 +609,10 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
     }
 
     // Use API-calculated coverage for isLate/isAdvance
-    const effectiveIsLate = paymentCoverage?.isLate ?? false
-    const effectiveIsAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
+    // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead
+    const effectiveWillBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
+    const effectiveIsAdvance = effectiveWillBeAhead
+    const effectiveIsLate = paymentCoverage?.isLate && !effectiveWillBeAhead
 
     return {
         // State

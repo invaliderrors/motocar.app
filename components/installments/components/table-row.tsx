@@ -145,31 +145,84 @@ export function InstallmentRow({
                 </div>
             </TableCell>
             <TableCell className="text-center">
-                {installment.isLate ? (
-                    <Badge
-                        variant="destructive"
-                        className="bg-red-500/80 hover:bg-red-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
-                    >
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        <span>Atrasada</span>
-                    </Badge>
-                ) : installment.advancePaymentDate ? (
-                    <Badge
-                        variant="default"
-                        className="bg-blue-500/80 hover:bg-blue-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
-                    >
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        <span>Adelantada</span>
-                    </Badge>
-                ) : (
-                    <Badge
-                        variant="default"
-                        className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
-                    >
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        <span>A tiempo</span>
-                    </Badge>
-                )}
+                {(() => {
+                    // Determine the effective status based on payment date and coverage
+                    // If late payment has advancePaymentDate, it means the payment covered late days AND put client ahead
+                    const hasAdvance = !!installment.advancePaymentDate
+                    
+                    // Calculate if the payment brought the client up to date or ahead
+                    // by comparing the coverage end date with today
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    
+                    let effectiveStatus: 'late' | 'advance' | 'ontime' = 'ontime'
+                    
+                    if (installment.isLate) {
+                        // Payment was for a late date
+                        if (hasAdvance) {
+                            // But it also put the client ahead - show as advance
+                            const advanceDate = new Date(installment.advancePaymentDate!)
+                            advanceDate.setHours(0, 0, 0, 0)
+                            if (advanceDate >= today) {
+                                effectiveStatus = 'advance'
+                            } else {
+                                // Advance date has passed, now effectively on time or late again
+                                effectiveStatus = 'ontime'
+                            }
+                        } else if (installment.latePaymentDate) {
+                            // Check if the late payment date is still in the past
+                            const lateDate = new Date(installment.latePaymentDate)
+                            lateDate.setHours(0, 0, 0, 0)
+                            if (lateDate < today) {
+                                effectiveStatus = 'late'
+                            } else {
+                                effectiveStatus = 'ontime'
+                            }
+                        } else {
+                            effectiveStatus = 'late'
+                        }
+                    } else if (hasAdvance) {
+                        const advanceDate = new Date(installment.advancePaymentDate!)
+                        advanceDate.setHours(0, 0, 0, 0)
+                        if (advanceDate >= today) {
+                            effectiveStatus = 'advance'
+                        } else {
+                            effectiveStatus = 'ontime'
+                        }
+                    }
+                    
+                    if (effectiveStatus === 'late') {
+                        return (
+                            <Badge
+                                variant="destructive"
+                                className="bg-red-500/80 hover:bg-red-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                <span>Atrasada</span>
+                            </Badge>
+                        )
+                    } else if (effectiveStatus === 'advance') {
+                        return (
+                            <Badge
+                                variant="default"
+                                className="bg-blue-500/80 hover:bg-blue-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                <span>Adelantada</span>
+                            </Badge>
+                        )
+                    } else {
+                        return (
+                            <Badge
+                                variant="default"
+                                className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                <span>A tiempo</span>
+                            </Badge>
+                        )
+                    }
+                })()}
             </TableCell>
             <TableCell className="hidden md:table-cell text-foreground">
                 <div className="flex items-center">

@@ -62,8 +62,11 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     }
 
     // Determine payment status from coverage
-    const isLate = paymentCoverage?.isLate ?? false
-    const isAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
+    // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead regardless of isLate
+    // isLate only means the coverage START date was in the past, not that the client will still be behind
+    const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
+    const isAdvance = willBeAhead
+    const isLate = paymentCoverage?.isLate && !willBeAhead
     const isOnTime = paymentCoverage ? (!paymentCoverage.isLate && paymentCoverage.daysAheadAfterPayment <= 0) : false
 
     const getFileIcon = (file: File) => {
@@ -119,10 +122,10 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                                             ? 'text-blue-700 dark:text-blue-400'
                                                             : 'text-green-700 dark:text-green-400'
                                                 }`}>
-                                                    {isLate 
-                                                        ? `${paymentCoverage.daysBehind} día(s) atrasado` 
-                                                        : isAdvance
-                                                            ? `${Math.floor(paymentCoverage.daysAheadAfterPayment)} día(s) adelantado`
+                                                    {isAdvance
+                                                        ? `${Math.floor(paymentCoverage.daysAheadAfterPayment)} día(s) adelantado`
+                                                        : isLate 
+                                                            ? `${paymentCoverage.daysBehind} día(s) atrasado` 
                                                             : 'Al día'
                                                     }
                                                 </span>
