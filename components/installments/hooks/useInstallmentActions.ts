@@ -75,22 +75,68 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             const blob = new Blob([res.data], { type: "application/pdf" })
             const fileURL = URL.createObjectURL(blob)
 
-            const printWindow = window.open(fileURL, "_blank")
+            // Detect if running on macOS
+            const isMacOS = navigator.platform.toUpperCase().indexOf('MAC') >= 0 || 
+                           navigator.userAgent.toUpperCase().indexOf('MAC') >= 0
 
-            if (!printWindow) {
-                toast({
-                    variant: "destructive",
-                    title: "Ventana bloqueada",
-                    description: "Por favor, permita ventanas emergentes para imprimir el recibo",
+            // For macOS, use an iframe approach which works better with Safari
+            if (isMacOS) {
+                // Create a hidden iframe for printing
+                const iframe = document.createElement('iframe')
+                iframe.style.position = 'fixed'
+                iframe.style.right = '0'
+                iframe.style.bottom = '0'
+                iframe.style.width = '0'
+                iframe.style.height = '0'
+                iframe.style.border = 'none'
+                iframe.src = fileURL
+                
+                document.body.appendChild(iframe)
+                
+                iframe.onload = () => {
+                    setTimeout(() => {
+                        try {
+                            iframe.contentWindow?.focus()
+                            iframe.contentWindow?.print()
+                        } catch (e) {
+                            // If iframe print fails, fallback to opening in new tab
+                            window.open(fileURL, '_blank')
+                        }
+                        
+                        // Clean up iframe after printing
+                        setTimeout(() => {
+                            document.body.removeChild(iframe)
+                            URL.revokeObjectURL(fileURL)
+                        }, 1000)
+                    }, 500)
+                }
+            } else {
+                // For Windows/Linux, use the original approach
+                const printWindow = window.open(fileURL, "_blank")
+
+                if (!printWindow) {
+                    // Fallback: download the file if popup is blocked
+                    const link = document.createElement('a')
+                    link.href = fileURL
+                    link.download = `recibo-${installment.id}.pdf`
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                    
+                    toast({
+                        title: "Recibo descargado",
+                        description: "El recibo se ha descargado. Ábralo para imprimir.",
+                        variant: "default",
+                    })
+                    return
+                }
+
+                printWindow.addEventListener("load", () => {
+                    setTimeout(() => {
+                        printWindow.print()
+                    }, 1000) // pequeña pausa para asegurar carga completa
                 })
-                throw new Error("No se pudo abrir la ventana de impresión")
             }
-
-            printWindow.addEventListener("load", () => {
-                setTimeout(() => {
-                    printWindow.print()
-                }, 1000) // pequeña pausa para asegurar carga completa
-            })
 
             toast({
                 title: "Recibo generado",

@@ -581,15 +581,27 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
     const handleDialogChange = (newOpen: boolean) => {
         setOpen(newOpen)
         if (!newOpen) {
+            // Reset all form state when dialog closes
             setLoadingData(true)
             setSelectedFile(null)
             setFilePreview(null)
             setUploadProgress(0)
             setIsUploading(false)
             setPaymentCoverage(null)
-            if (!isEditing) {
-                form.reset()
-            }
+            setSelectedLoan(null)
+            setPaymentBreakdown(null)
+            setLastInstallmentInfo(null)
+            setIsEditing(false)
+            form.reset({
+                loanId: "",
+                amount: 0,
+                gps: 0,
+                dueDate: null,
+                paymentDate: new Date(),
+                notes: "",
+                attachmentUrl: "",
+                createdById: user?.id,
+            })
         }
     }
 
