@@ -1,14 +1,22 @@
 "use client"
 
+import { useState } from "react"
 import { News, NewsType, NewsCategory } from "@/lib/types"
-import { Edit, Trash2, User, Building2 } from "lucide-react"
+import { Edit, Trash2, User, Building2, Power } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { useState } from "react"
 import { NewsForm } from "./NewsForm"
+import { NewsService } from "@/lib/services/news.service"
+import { useToast } from "@/components/ui/use-toast"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface NewsTableRowProps {
     news: News
@@ -52,6 +60,29 @@ const getCategoryColor = (category: NewsCategory) => {
 
 export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
     const [editOpen, setEditOpen] = useState(false)
+    const [togglingStatus, setTogglingStatus] = useState(false)
+    const { toast } = useToast()
+
+    const handleToggleStatus = async () => {
+        try {
+            setTogglingStatus(true)
+            await NewsService.update(news.id, { isActive: !news.isActive })
+            toast({
+                title: news.isActive ? "Novedad desactivada" : "Novedad activada",
+                description: `La novedad ha sido ${news.isActive ? "desactivada" : "activada"} correctamente`,
+            })
+            onRefresh()
+        } catch (error) {
+            console.error("Error toggling status:", error)
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No se pudo cambiar el estado de la novedad",
+            })
+        } finally {
+            setTogglingStatus(false)
+        }
+    }
 
     return (
         <>
@@ -128,23 +159,55 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
                     </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditOpen(true)}
-                            className="h-8 w-8 p-0 hover:bg-muted"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onDelete(news.id)}
-                            className="h-8 w-8 p-0 hover:bg-muted"
-                        >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                    <div className="flex justify-end gap-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleToggleStatus}
+                                        disabled={togglingStatus}
+                                        className={`h-8 w-8 p-0 hover:bg-muted ${news.isActive ? "text-green-500 hover:text-green-600" : "text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        <Power className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {news.isActive ? "Desactivar" : "Activar"}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setEditOpen(true)}
+                                        className="h-8 w-8 p-0 hover:bg-muted"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Editar</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onDelete(news.id)}
+                                        className="h-8 w-8 p-0 hover:bg-muted"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Eliminar</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </TableCell>
             </TableRow>

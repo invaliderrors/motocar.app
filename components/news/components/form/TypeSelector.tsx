@@ -28,7 +28,7 @@ export function TypeSelector({ form }: TypeSelectorProps) {
             control={form.control}
             name="type"
             render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col space-y-2">
                     <FormLabel>Tipo</FormLabel>
                     <Select
                         onValueChange={(value) => {

@@ -15,9 +15,7 @@ import {
     LoanSelector,
     TitleField,
     DescriptionFields,
-    DateAndNumberFields,
-    ToggleFields,
-    ActiveToggle,
+    DateFields,
     FormActions,
 } from "./form"
 
@@ -33,7 +31,6 @@ export function NewsForm({ open, onClose, onSuccess, news }: NewsFormProps) {
         form,
         loading,
         newsType,
-        autoCalculate,
         onSubmit,
         isEditing,
     } = useNewsForm({ news, open, onSuccess })
@@ -47,7 +44,7 @@ export function NewsForm({ open, onClose, onSuccess, news }: NewsFormProps) {
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {isEditing ? "Editar Novedad" : "Nueva Novedad"}
@@ -60,7 +57,7 @@ export function NewsForm({ open, onClose, onSuccess, news }: NewsFormProps) {
                         <div className="grid grid-cols-3 gap-4">
                             <TypeSelector form={form} />
                             <CategorySelector form={form} newsType={newsType} />
-                            {newsType === NewsType.LOAN_SPECIFIC ? (
+                            {newsType === NewsType.LOAN_SPECIFIC && (
                                 <LoanSelector
                                     form={form}
                                     loans={loans}
@@ -68,8 +65,6 @@ export function NewsForm({ open, onClose, onSuccess, news }: NewsFormProps) {
                                     loanSearchOpen={loanSearchOpen}
                                     setLoanSearchOpen={setLoanSearchOpen}
                                 />
-                            ) : (
-                                <ActiveToggle form={form} />
                             )}
                         </div>
 
@@ -79,17 +74,8 @@ export function NewsForm({ open, onClose, onSuccess, news }: NewsFormProps) {
                         {/* Row 3: Description and Notes */}
                         <DescriptionFields form={form} />
 
-                        {/* Row 4: Dates and Numbers */}
-                        <DateAndNumberFields
-                            form={form}
-                            newsType={newsType}
-                            autoCalculate={autoCalculate}
-                        />
-
-                        {/* Row 5: Toggles for loan-specific news */}
-                        {newsType === NewsType.LOAN_SPECIFIC && (
-                            <ToggleFields form={form} />
-                        )}
+                        {/* Row 4: Dates */}
+                        <DateFields form={form} />
 
                         {/* Action Buttons */}
                         <FormActions

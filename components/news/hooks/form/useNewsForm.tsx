@@ -16,12 +16,8 @@ export const newsSchema = z.object({
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
     notes: z.string().optional(),
     startDate: z.string().min(1, "La fecha de inicio es requerida"),
-    endDate: z.string().optional(),
-    isActive: z.boolean().default(true),
-    loanId: z.string().optional(),
-    autoCalculateInstallments: z.boolean().default(false),
-    daysUnavailable: z.number().min(0).optional(),
-    installmentsToSubtract: z.number().min(0).optional(),
+    endDate: z.string().min(1, "La fecha de fin es requerida"),
+    loanId: z.string().min(1, "El contrato es requerido"),
 })
 
 export type NewsFormValues = z.infer<typeof newsSchema>
@@ -47,16 +43,23 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
             notes: "",
             startDate: new Date().toISOString().split("T")[0],
             endDate: "",
-            isActive: true,
             loanId: "",
-            autoCalculateInstallments: false,
-            daysUnavailable: 0,
-            installmentsToSubtract: 0,
         },
     })
 
     const newsType = form.watch("type")
-    const autoCalculate = form.watch("autoCalculateInstallments")
+    const startDate = form.watch("startDate")
+    const endDate = form.watch("endDate")
+
+    // Auto-calculate days unavailable based on start and end dates
+    const calculateDaysUnavailable = (): number => {
+        if (!startDate || !endDate) return 0
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        const diffTime = end.getTime() - start.getTime()
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        return diffDays > 0 ? diffDays : 0
+    }
 
     useEffect(() => {
         if (news) {
@@ -68,11 +71,7 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 notes: news.notes || "",
                 startDate: new Date(news.startDate).toISOString().split("T")[0],
                 endDate: news.endDate ? new Date(news.endDate).toISOString().split("T")[0] : "",
-                isActive: news.isActive,
                 loanId: news.loanId || "",
-                autoCalculateInstallments: news.autoCalculateInstallments,
-                daysUnavailable: news.daysUnavailable || 0,
-                installmentsToSubtract: news.installmentsToSubtract || 0,
             })
         } else {
             form.reset({
@@ -83,11 +82,7 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 notes: "",
                 startDate: new Date().toISOString().split("T")[0],
                 endDate: "",
-                isActive: true,
                 loanId: "",
-                autoCalculateInstallments: false,
-                daysUnavailable: 0,
-                installmentsToSubtract: 0,
             })
         }
     }, [news, open])
@@ -98,14 +93,17 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
         try {
             setLoading(true)
 
+            const daysUnavailable = calculateDaysUnavailable()
             const data: CreateNewsDto = {
                 ...values,
                 storeId: currentStore.id,
                 loanId: values.type === NewsType.LOAN_SPECIFIC ? values.loanId : undefined,
                 endDate: values.endDate || undefined,
                 notes: values.notes || undefined,
-                daysUnavailable: values.daysUnavailable || undefined,
-                installmentsToSubtract: values.installmentsToSubtract || undefined,
+                isActive: true,
+                autoCalculateInstallments: true,
+                daysUnavailable: daysUnavailable > 0 ? daysUnavailable : undefined,
+                installmentsToSubtract: daysUnavailable > 0 ? daysUnavailable : undefined,
             }
 
             if (news) {
@@ -139,7 +137,6 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
         form,
         loading,
         newsType,
-        autoCalculate,
         onSubmit,
         isEditing: !!news,
     }

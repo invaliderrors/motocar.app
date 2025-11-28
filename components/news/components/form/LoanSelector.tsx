@@ -45,7 +45,7 @@ export function LoanSelector({
             render={({ field }) => {
                 const selectedLoan = loans.find(loan => loan.id === field.value)
                 return (
-                    <FormItem className="flex flex-col">
+                    <FormItem className="flex flex-col flex-1 space-y-2">
                         <FormLabel>Contrato</FormLabel>
                         <Popover open={loanSearchOpen} onOpenChange={setLoanSearchOpen} modal={true}>
                             <PopoverTrigger asChild>

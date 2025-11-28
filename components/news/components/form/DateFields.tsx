@@ -1,7 +1,6 @@
 "use client"
 
 import { UseFormReturn } from "react-hook-form"
-import { NewsType } from "@/lib/types"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
@@ -12,7 +11,6 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -23,10 +21,8 @@ import {
 import { cn } from "@/lib/utils"
 import { NewsFormValues } from "../../hooks/form"
 
-interface DateAndNumberFieldsProps {
+interface DateFieldsProps {
     form: UseFormReturn<NewsFormValues>
-    newsType: NewsType
-    autoCalculate: boolean
 }
 
 // Helper to format date to YYYY-MM-DD using local date components (avoids timezone issues)
@@ -44,9 +40,9 @@ function parseDateString(dateString: string | undefined): Date | undefined {
     return new Date(year, month - 1, day)
 }
 
-export function DateAndNumberFields({ form, newsType, autoCalculate }: DateAndNumberFieldsProps) {
+export function DateFields({ form }: DateFieldsProps) {
     return (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4">
             <FormField
                 control={form.control}
                 name="startDate"
@@ -136,55 +132,6 @@ export function DateAndNumberFields({ form, newsType, autoCalculate }: DateAndNu
                     </FormItem>
                 )}
             />
-
-            {newsType === NewsType.LOAN_SPECIFIC && (
-                <>
-                    <FormField
-                        control={form.control}
-                        name="daysUnavailable"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Días No Disponible</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        placeholder="0"
-                                        {...field}
-                                        onChange={(e) =>
-                                            field.onChange(parseInt(e.target.value) || 0)
-                                        }
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="installmentsToSubtract"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Cuotas a Descontar</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        placeholder="0"
-                                        disabled={autoCalculate}
-                                        {...field}
-                                        onChange={(e) =>
-                                            field.onChange(parseInt(e.target.value) || 0)
-                                        }
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </>
-            )}
         </div>
     )
 }

@@ -29,7 +29,7 @@ export function CategorySelector({ form, newsType }: CategorySelectorProps) {
             control={form.control}
             name="category"
             render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col space-y-2">
                     <FormLabel>Categoría</FormLabel>
                     <Select
                         onValueChange={field.onChange}
