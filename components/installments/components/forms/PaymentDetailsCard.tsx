@@ -157,57 +157,31 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                             </div>
                         )}
 
-                {/* Amount and GPS row */}
-                <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                        control={control}
-                        name="amount"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-xs">Monto</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <span className="absolute left-2 top-2 text-muted-foreground text-sm">$</span>
-                                        <Input
-                                            type="text"
-                                            className="pl-6 h-8 text-sm"
-                                            value={field.value ? field.value.toLocaleString() : ""}
-                                            onChange={(e) => {
-                                                const value = e.target.value.replace(/[^\d]/g, "")
-                                                field.onChange(value ? Number.parseInt(value) : 0)
-                                            }}
-                                        />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={control}
-                        name="gps"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-xs">GPS</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <span className="absolute left-2 top-2 text-muted-foreground text-sm">$</span>
-                                        <Input
-                                            type="text"
-                                            className="pl-6 h-8 text-sm"
-                                            value={field.value ? field.value.toLocaleString() : ""}
-                                            onChange={(e) => {
-                                                const value = e.target.value.replace(/[^\d]/g, "")
-                                                field.onChange(value ? Number.parseInt(value) : 0)
-                                            }}
-                                        />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                {/* Amount field - GPS is auto-calculated */}
+                <FormField
+                    control={control}
+                    name="amount"
+                    render={({ field }) => (
+                        <FormItem className="space-y-1">
+                            <FormLabel className="text-xs">Monto Total</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <span className="absolute left-2 top-2 text-muted-foreground text-sm">$</span>
+                                    <Input
+                                        type="text"
+                                        className="pl-6 h-8 text-sm"
+                                        value={field.value ? field.value.toLocaleString() : ""}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/[^\d]/g, "")
+                                            field.onChange(value ? Number.parseInt(value) : 0)
+                                        }}
+                                    />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 {/* Method and Date row */}
                 <div className="grid grid-cols-2 gap-2">

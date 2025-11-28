@@ -83,8 +83,8 @@ export function InstallmentForm({
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="px-4 pb-4">
-              {/* 3-column layout: Left (Client + Payment) | Middle (Summary + Contract + Breakdown) | Right (Status) */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {/* 3-column layout: Left (Client + Payment) wider | Middle (Summary + Contract + Breakdown) | Right (Status) */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_1fr] gap-3">
                 {/* LEFT COLUMN: Client Info + Payment Details (with attachment inside) */}
                 <div className="space-y-3">
                   <ClientInformationCard
@@ -106,12 +106,6 @@ export function InstallmentForm({
                       onFileChange: handleFileChange,
                       onRemoveFile: removeFile,
                     }}
-                  />
-                  <ActionButtons
-                    loading={loading}
-                    isEditing={isEditing}
-                    selectedLoan={selectedLoan}
-                    onCancel={() => handleDialogChange(false)}
                   />
                 </div>
 
@@ -139,18 +133,29 @@ export function InstallmentForm({
                   )}
                 </div>
 
-                {/* RIGHT COLUMN: Payment Status */}
-                <div>
-                  {selectedLoan ? (
-                    <PaymentStatusSection
-                      lastInstallmentInfo={lastInstallmentInfo}
-                      payments={selectedLoan.payments || []}
+                {/* RIGHT COLUMN: Payment Status + Action Buttons */}
+                <div className="flex flex-col">
+                  <div className="flex-1">
+                    {selectedLoan ? (
+                      <PaymentStatusSection
+                        lastInstallmentInfo={lastInstallmentInfo}
+                        payments={selectedLoan.payments || []}
+                        paymentCoverage={paymentCoverage}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full py-12 text-center text-muted-foreground border rounded-lg">
+                        <p className="text-xs">Estado de pagos</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <ActionButtons
+                      loading={loading}
+                      isEditing={isEditing}
+                      selectedLoan={selectedLoan}
+                      onCancel={() => handleDialogChange(false)}
                     />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full py-12 text-center text-muted-foreground border rounded-lg">
-                      <p className="text-xs">Estado de pagos</p>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </form>

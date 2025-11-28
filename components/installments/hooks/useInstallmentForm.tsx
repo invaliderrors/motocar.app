@@ -110,6 +110,30 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
     const gps = form.watch("gps")
     const paymentMethod = form.watch("paymentMethod")
 
+    // Helper function to calculate GPS portion from total amount based on loan rates
+    const calculateGpsFromTotal = useCallback((loan: EnrichedLoan, totalAmount: number) => {
+        const baseRate = loan.monthlyPayment || loan.installmentPaymentAmmount || 0
+        const gpsRate = loan.gpsInstallmentPayment || 0
+        const totalRate = baseRate + gpsRate
+        
+        if (totalRate === 0 || gpsRate === 0) return { base: totalAmount, gps: 0 }
+        
+        // Calculate GPS proportionally
+        const gpsRatio = gpsRate / totalRate
+        const gpsAmount = Math.round(totalAmount * gpsRatio)
+        const baseAmount = totalAmount - gpsAmount
+        
+        return { base: baseAmount, gps: gpsAmount }
+    }, [])
+
+    // Auto-calculate GPS when amount changes
+    useEffect(() => {
+        if (selectedLoan && amount > 0) {
+            const { gps: calculatedGps } = calculateGpsFromTotal(selectedLoan, amount)
+            form.setValue("gps", calculatedGps)
+        }
+    }, [selectedLoan, amount, calculateGpsFromTotal, form])
+
     // Load installment data for editing
     useEffect(() => {
         if (installment) {
@@ -219,13 +243,12 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
 
     // Calculate payment breakdown
     useEffect(() => {
-        if (selectedLoan) {
-            // Always show breakdown for TRANSACTION method, or when amount is entered
-            if (paymentMethod === "TRANSACTION" || amount) {
-                calculatePaymentBreakdown(selectedLoan, amount, gps)
-            }
+        if (selectedLoan && amount > 0) {
+            // Calculate base and GPS from total amount
+            const { base, gps: calculatedGps } = calculateGpsFromTotal(selectedLoan, amount)
+            calculatePaymentBreakdown(selectedLoan, base, calculatedGps)
         }
-    }, [selectedLoan, amount, gps, paymentMethod])
+    }, [selectedLoan, amount, calculateGpsFromTotal])
 
     // Load loans when dialog opens
     useEffect(() => {
@@ -376,12 +399,13 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 if (loan) {
                     setSelectedLoan(loan)
                     form.setValue("loanId", loanId)
-                    // Use the actual loan's payment amount
-                    const paymentAmount = loan.monthlyPayment || loan.installmentPaymentAmmount || 0
+                    // Set total amount (base + GPS combined)
+                    const baseAmount = loan.monthlyPayment || loan.installmentPaymentAmmount || 0
                     const gpsAmount = loan.gpsInstallmentPayment || 0
-                    form.setValue("amount", paymentAmount)
-                    form.setValue("gps", gpsAmount)
-                    calculatePaymentBreakdown(loan, paymentAmount, gpsAmount)
+                    const totalAmount = baseAmount + gpsAmount
+                    form.setValue("amount", totalAmount)
+                    // GPS will be auto-calculated by the useEffect
+                    calculatePaymentBreakdown(loan, baseAmount, gpsAmount)
                 }
             }
             setLoadingData(false)
@@ -399,11 +423,13 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         const loan = loans.find((l) => l.id === loanId)
         if (loan) {
             setSelectedLoan(loan)
-            // Use the actual loan's payment amount
-            form.setValue("amount", loan.monthlyPayment || loan.installmentPaymentAmmount || 0)
-            // Use the actual GPS amount from the loan
-            form.setValue("gps", loan.gpsInstallmentPayment || 0)
-            calculatePaymentBreakdown(loan, loan.monthlyPayment || loan.installmentPaymentAmmount || 0, loan.gpsInstallmentPayment || 0)
+            // Set total amount (base + GPS combined)
+            const baseAmount = loan.monthlyPayment || loan.installmentPaymentAmmount || 0
+            const gpsAmount = loan.gpsInstallmentPayment || 0
+            const totalAmount = baseAmount + gpsAmount
+            form.setValue("amount", totalAmount)
+            // GPS will be auto-calculated by the useEffect
+            calculatePaymentBreakdown(loan, baseAmount, gpsAmount)
         } else {
             setSelectedLoan(null)
             setPaymentBreakdown(null)

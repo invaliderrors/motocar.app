@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react"
+import { Clock, CheckCircle, AlertTriangle, Calendar, DollarSign } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { utcToZonedTime } from "date-fns-tz"
@@ -22,6 +22,15 @@ const toColombianTime = (date: Date | string) => {
     return utcToZonedTime(new Date(date), COLOMBIA_TZ)
 }
 
+// Payment coverage response type from API
+interface PaymentCoverageInfo {
+    dailyRate: number
+    daysBehind: number
+    amountNeededToCatchUp: number
+    isLate: boolean
+    daysAheadAfterPayment: number
+}
+
 interface PaymentStatusSectionProps {
     lastInstallmentInfo: {
         lastPaymentDate: Date | null
@@ -36,81 +45,42 @@ interface PaymentStatusSectionProps {
         paymentMethod: string
         isLate: boolean
     }>
+    paymentCoverage?: PaymentCoverageInfo | null
 }
 
-export function PaymentStatusSection({ lastInstallmentInfo, payments }: PaymentStatusSectionProps) {
-    // Compute days difference excluding Sundays between two dates (dates treated in Colombian TZ)
-    const diffDaysExcludingSundays = (fromDate: Date | string, toDate: Date | string) => {
-        const start = toColombianTime(fromDate)
-        const end = toColombianTime(toDate)
-
-        // Normalize to start of day for both dates (in Colombian TZ)
-        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate())
-        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate())
-
-        let count = 0
-        const cursor = new Date(startDay)
-        while (cursor <= endDay) {
-            // getDay(): 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-            if (cursor.getDay() !== 0) {
-                count++
-            }
-            cursor.setDate(cursor.getDate() + 1)
-        }
-
-        // If start and end are the same day, count should be 0 if it's Sunday, 1 otherwise.
-        // But original "days since" semantics likely mean difference, not inclusive count.
-        // Convert inclusive day count into a non-inclusive difference by subtracting 1 when start <= end.
-        return Math.max(0, count - 1)
+export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCoverage }: PaymentStatusSectionProps) {
+    // Format currency
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(value)
     }
 
-    // Get effective days since last payment excluding Sundays, falling back to provided value if absent
-    const effectiveDaysSinceLastPayment = (() => {
-        if (!lastInstallmentInfo?.lastPaymentDate) return lastInstallmentInfo?.daysSinceLastPayment ?? null
-        try {
-            const today = new Date()
-            return diffDaysExcludingSundays(lastInstallmentInfo.lastPaymentDate, today)
-        } catch {
-            return lastInstallmentInfo?.daysSinceLastPayment ?? null
-        }
-    })()
-
-    // Check if last payment was in advance
-    const lastPaymentIsAdvance = payments.length > 0 && payments[0].advancePaymentDate
-    const daysInAdvance = (() => {
-        if (!lastPaymentIsAdvance || !payments[0].advancePaymentDate) return null
-        try {
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            const advanceDate = new Date(payments[0].advancePaymentDate)
-            advanceDate.setHours(0, 0, 0, 0)
-            const diffTime = advanceDate.getTime() - today.getTime()
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-            return diffDays
-        } catch {
-            return null
-        }
-    })()
+    // Calculate installments owed based on payment coverage
+    const installmentsOwed = paymentCoverage?.dailyRate && paymentCoverage?.amountNeededToCatchUp 
+        ? Math.ceil(paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate)
+        : 0
+    
+    const amountOwed = paymentCoverage?.amountNeededToCatchUp ?? 0
+    const isLate = paymentCoverage?.isLate ?? false
+    const isAdvance = paymentCoverage ? (paymentCoverage.daysAheadAfterPayment > 0 && !paymentCoverage.isLate) : false
 
     const getPaymentStatus = () => {
-        if (!lastInstallmentInfo) return { status: "unknown", text: "Sin información", color: "gray" }
+        if (!lastInstallmentInfo && !paymentCoverage) return { status: "unknown", text: "Sin información", color: "gray" }
 
         // Check for advance payment first
-        if (lastPaymentIsAdvance && daysInAdvance !== null && daysInAdvance > 0) {
-            return { status: "advance", text: `${-daysInAdvance} días (adelantado)`, color: "blue" }
+        if (isAdvance && paymentCoverage && paymentCoverage.daysAheadAfterPayment > 0) {
+            return { status: "advance", text: `Adelantado`, color: "blue" }
         }
 
-        const daysSince = effectiveDaysSinceLastPayment
-
-        if (daysSince === null) return { status: "unknown", text: "Sin información", color: "gray" }
-
-        if (daysSince === 0) {
-            return { status: "current", text: "Al día", color: "green" }
-        } else if (daysSince === 1) {
-            return { status: "due", text: "Vence hoy", color: "yellow" }
-        } else {
-            return { status: "overdue", text: `+${daysSince} días atrasado`, color: "red" }
+        if (isLate && installmentsOwed > 0) {
+            return { status: "overdue", text: `${installmentsOwed} cuota${installmentsOwed > 1 ? 's' : ''} atrasada${installmentsOwed > 1 ? 's' : ''}`, color: "red" }
         }
+
+        return { status: "current", text: "Al día", color: "green" }
     }
 
     const paymentStatus = getPaymentStatus()
@@ -176,21 +146,31 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments }: PaymentS
                 <div className="bg-muted/30 rounded-md p-2">
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-muted-foreground">Último pago:</p>
-                            {lastInstallmentInfo?.lastPaymentDate ? (
-                                <p className="text-sm font-medium truncate">
-                                    {format(toColombianTime(lastInstallmentInfo.lastPaymentDate), "dd/MM/yyyy", { locale: es })}
-                                </p>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">Sin pagos</p>
-                            )}
+                            <p className="text-xs text-muted-foreground">Cuotas atrasadas:</p>
+                            <p className={`text-lg font-bold ${installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                {installmentsOwed}
+                            </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-muted-foreground">Días desde última:</p>
-                            <p className="text-lg font-bold">{effectiveDaysSinceLastPayment ?? 0}</p>
+                            <p className="text-xs text-muted-foreground">Total adeudado:</p>
+                            <p className={`text-sm font-bold ${amountOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                {formatCurrency(amountOwed)}
+                            </p>
                         </div>
                     </div>
                 </div>
+
+                {/* Last payment info */}
+                {lastInstallmentInfo?.lastPaymentDate && (
+                    <div className="bg-muted/20 rounded-md p-2">
+                        <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs text-muted-foreground">Último pago:</p>
+                            <p className="text-xs font-medium">
+                                {format(toColombianTime(lastInstallmentInfo.lastPaymentDate), "dd/MM/yyyy", { locale: es })}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Payment History - Compact */}
                 {recentPayments.length > 0 && (
