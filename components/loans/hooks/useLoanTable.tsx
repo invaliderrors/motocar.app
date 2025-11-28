@@ -232,20 +232,23 @@ export function useLoanTable() {
         }
     }
 
-    const filteredLoans = loans.filter((loan) => {
-        // Filter by archived status
-        if (loan.archived !== showArchived) return false
+    const filteredLoans = loans
+        .filter((loan) => {
+            // Filter by archived status
+            if (loan.archived !== showArchived) return false
 
-        // Filter by status
-        if (statusFilter !== "all" && loan.status !== statusFilter) return false
+            // Filter by status
+            if (statusFilter !== "all" && loan.status !== statusFilter) return false
 
-        // Filter by search term
-        const userMatch = loan.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        const vehicleMatch = loan.vehicle?.model?.toLowerCase().includes(searchTerm.toLowerCase())
-        const idMatch = loan.user?.identification?.toLowerCase().includes(searchTerm.toLowerCase())
-        const plateMatch = loan.vehicle?.plate?.toLowerCase().includes(searchTerm.toLowerCase())
-        return userMatch || vehicleMatch || idMatch || plateMatch
-    })
+            // Filter by search term
+            const userMatch = loan.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+            const vehicleMatch = loan.vehicle?.model?.toLowerCase().includes(searchTerm.toLowerCase())
+            const idMatch = loan.user?.identification?.toLowerCase().includes(searchTerm.toLowerCase())
+            const plateMatch = loan.vehicle?.plate?.toLowerCase().includes(searchTerm.toLowerCase())
+            return userMatch || vehicleMatch || idMatch || plateMatch
+        })
+        // Sort by createdAt descending (latest first)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     const totalItems = filteredLoans.length
     const totalPages = Math.ceil(totalItems / itemsPerPage)

@@ -151,6 +151,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
     const dataLoaded = useRef(false)
     const isMounted = useRef(false)
     const calculationInProgress = useRef(false)
+    const initialLoadComplete = useRef(false) // Flag to track when initial data is loaded
 
     const form = useForm<LoanFormValues>({
         resolver: zodResolver(loanSchema),
@@ -363,6 +364,9 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
     // Auto-calculate end date when start date or loan term changes
     useEffect(() => {
         if (!isOpen || !isMounted.current) return
+        
+        // Skip auto-calculation during initial load when editing
+        if (loanData && !initialLoadComplete.current) return
 
         const [
             totalAmount,
@@ -386,7 +390,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 form.setValue("endDate", calculatedEndDate, { shouldValidate: false })
             }
         }
-    }, [watchedValues, isOpen])
+    }, [watchedValues, isOpen, loanData])
 
     const filterAvailableOptions = async (allUsers: User[], allVehicles: Vehicle[]) => {
         try {
@@ -466,14 +470,22 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             await filterAvailableOptions(users, vehicles)
 
             if (loanData) {
-                // Convert installments back to months if needed
+                // Calculate loanTermMonths from start and end dates if available
                 let loanTermMonths = loanData.installments
-                if (loanData.paymentFrequency === "DAILY") {
-                    loanTermMonths = Math.ceil(loanData.installments / 30)
+                
+                if (loanData.startDate && loanData.endDate) {
+                    // Calculate exact months between start and end dates
+                    const start = new Date(loanData.startDate)
+                    const end = new Date(loanData.endDate)
+                    const monthsDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
+                    loanTermMonths = Math.max(1, monthsDiff)
+                } else if (loanData.paymentFrequency === "DAILY") {
+                    // Fallback: use more accurate conversion (30.44 days per month)
+                    loanTermMonths = Math.round(loanData.installments / 30.44)
                 } else if (loanData.paymentFrequency === "WEEKLY") {
-                    loanTermMonths = Math.ceil(loanData.installments / 4)
+                    loanTermMonths = Math.round(loanData.installments / 4.33)
                 } else if (loanData.paymentFrequency === "BIWEEKLY") {
-                    loanTermMonths = Math.ceil(loanData.installments / 2)
+                    loanTermMonths = Math.round(loanData.installments / 2.17)
                 }
 
                 // Split installmentPaymentAmmount into payment and GPS if needed
@@ -500,6 +512,11 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                     installmentPaymentAmmount: installmentPayment,
                     gpsAmount: gpsAmount,
                 })
+                
+                // Mark initial load as complete after a small delay to let the form settle
+                setTimeout(() => {
+                    initialLoadComplete.current = true
+                }, 100)
             }
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los datos" })
@@ -606,6 +623,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
     const handleCloseDialog = () => {
         setIsOpen(false)
         setLoanSummary(null)
+        initialLoadComplete.current = false // Reset for next open
     }
 
     return {
