@@ -16,6 +16,7 @@ import {
     TitleField,
     DescriptionFields,
     DateFields,
+    DaysPreview,
     FormActions,
 } from "./form"
 
@@ -76,6 +77,9 @@ export function NewsForm({ open, onClose, onSuccess, news }: NewsFormProps) {
 
                         {/* Row 4: Dates */}
                         <DateFields form={form} />
+
+                        {/* Days Preview - shows how many days/installments will be excluded */}
+                        <DaysPreview form={form} />
 
                         {/* Action Buttons */}
                         <FormActions

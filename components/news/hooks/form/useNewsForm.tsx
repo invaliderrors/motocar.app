@@ -51,13 +51,14 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
     const startDate = form.watch("startDate")
     const endDate = form.watch("endDate")
 
-    // Auto-calculate days unavailable based on start and end dates
+    // Auto-calculate days unavailable based on start and end dates (inclusive)
+    // Example: Nov 25 to Nov 28 = 4 days (25, 26, 27, 28)
     const calculateDaysUnavailable = (): number => {
         if (!startDate || !endDate) return 0
         const start = new Date(startDate)
         const end = new Date(endDate)
         const diffTime = end.getTime() - start.getTime()
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // +1 to include both start and end dates
         return diffDays > 0 ? diffDays : 0
     }
 
