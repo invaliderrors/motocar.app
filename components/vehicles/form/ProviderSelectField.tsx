@@ -2,7 +2,7 @@
 
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import type { Control } from "react-hook-form"
 import { VehicleFormValues } from "../hooks/useVehicleForm"
@@ -20,8 +20,8 @@ interface ProviderSelectFieldProps {
 export function ProviderSelectField({
     control,
     name,
-    label = "Proveedor",
-    description = "Selecciona el proveedor para esta vehículo",
+    label,
+    description,
     required = true,
 }: ProviderSelectFieldProps) {
     const { providers, loading, error } = useProviders()
@@ -32,12 +32,14 @@ export function ProviderSelectField({
             name={name}
             render={({ field }) => (
                 <FormItem>
-                    <FormLabel className={`${required ? "after:content-['*'] after:text-red-500 after:ml-0.5" : ""}`}>
-                        {label}
-                    </FormLabel>
+                    {label && (
+                        <FormLabel className={cn(required && "after:content-['*'] after:text-red-500 after:ml-0.5")}>
+                            {label}
+                        </FormLabel>
+                    )}
                     <Select value={field.value} onValueChange={field.onChange} disabled={loading}>
                         <FormControl>
-                            <SelectTrigger className="border-blue-100 focus:border-blue-300 dark:border-blue-900/50 dark:focus:border-blue-700">
+                            <SelectTrigger className="border-border focus:border-primary/50 transition-colors">
                                 <SelectValue
                                     placeholder={
                                         loading ? (
@@ -62,7 +64,7 @@ export function ProviderSelectField({
                             ))}
                         </SelectContent>
                     </Select>
-                    <FormDescription className="text-xs">{description}</FormDescription>
+                    {description && <FormDescription className="text-xs">{description}</FormDescription>}
                     <FormMessage />
                 </FormItem>
             )}
