@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign } from "lucide-react"
+import { Coins } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
 interface PaymentBreakdown {
@@ -20,7 +20,7 @@ export function PaymentBreakdownCard({ breakdown, gps }: PaymentBreakdownCardPro
         <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/40 dark:to-green-900/20 border-green-200 dark:border-green-800/30 shadow-sm">
             <CardHeader className="pb-1 pt-2 px-3">
                 <CardTitle className="text-sm flex items-center gap-2 text-green-700 dark:text-green-300">
-                    <DollarSign className="h-3.5 w-3.5" />
+                    <Coins className="h-3.5 w-3.5" />
                     Desglose
                 </CardTitle>
             </CardHeader>

@@ -4,7 +4,7 @@ import { TableRow, TableCell } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
 
-import { User, Car, DollarSign, BadgeCent, Calendar, AlertTriangle, CheckCircle2, StickyNote, Clock } from 'lucide-react'
+import { User, Car, Calendar, AlertTriangle, CheckCircle2, StickyNote, Clock } from 'lucide-react'
 import { CreditCard, FileText } from 'lucide-react'
 import { getPaymentMethodIcon, formatSpanishDate, getPaymentMethodLabel } from "../utils/format"
 import { ActionsMenu } from "./actions"
@@ -108,13 +108,13 @@ export function InstallmentRow({
             </TableCell>
             <TableCell className="text-foreground font-medium">
                 <div className="flex items-center">
-                    <DollarSign className="mr-1 h-4 w-4 text-green-400" />
+                    <span className="mr-1 text-xs font-semibold text-green-400">COP</span>
                     {formatCurrency(installment.amount)}
                 </div>
             </TableCell>
             <TableCell className="text-foreground font-medium">
                 <div className="flex items-center">
-                    <BadgeCent className="mr-1 h-4 w-4 text-yellow-400" />
+                    <span className="mr-1 text-xs font-semibold text-yellow-400">COP</span>
                     {formatCurrency(installment.gps)}
                 </div>
             </TableCell>

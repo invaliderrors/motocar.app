@@ -10,7 +10,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { DollarSign, CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File, CalendarX } from "lucide-react"
+import { CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File, CalendarX, Coins } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { Control } from "react-hook-form"
@@ -92,7 +92,7 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
             <CardHeader className="pb-2 pt-3 px-3">
                 <CardTitle className="text-sm flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-primary" />
+                        <Coins className="h-4 w-4 text-primary" />
                         Detalles del Pago
                     </span>
                     {/* Skipped Dates Badge in Header */}
