@@ -3,7 +3,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Newspaper, User, Calendar, FileText, Clock, Activity, Settings } from "lucide-react"
+import { Newspaper, User, Calendar, FileText, Clock, Activity, Settings, CalendarDays } from "lucide-react"
 import { NewsTableControls } from "./components/NewsTableControls"
 import { NewsTableDialogs } from "./components/NewsTableDialogs"
 import { NewsTablePagination } from "./components/NewsTablePagination"
@@ -54,6 +54,12 @@ export function NewsTable() {
                                     <div className="flex items-center gap-1.5">
                                         <Activity className="h-4 w-4" />
                                         <span>Categoría</span>
+                                    </div>
+                                </TableHead>
+                                <TableHead className="hidden sm:table-cell text-foreground font-medium">
+                                    <div className="flex items-center gap-1.5">
+                                        <CalendarDays className="h-4 w-4" />
+                                        <span>Modo</span>
                                     </div>
                                 </TableHead>
                                 <TableHead className="text-foreground font-medium">
@@ -107,6 +113,9 @@ export function NewsTable() {
                                         <TableCell>
                                             <Skeleton className="h-5 w-[100px]" />
                                         </TableCell>
+                                        <TableCell className="hidden sm:table-cell">
+                                            <Skeleton className="h-5 w-[80px]" />
+                                        </TableCell>
                                         <TableCell>
                                             <Skeleton className="h-5 w-[150px]" />
                                         </TableCell>
@@ -136,7 +145,7 @@ export function NewsTable() {
                                 ))
                             ) : news.length === 0 ? (
                                 <TableRow className="border-border">
-                                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <Newspaper className="h-10 w-10 text-muted-foreground/30" />
                                             <p className="text-sm">

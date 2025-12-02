@@ -19,7 +19,10 @@ import {
     HelpCircle,
     Clock,
     Receipt,
-    ArrowRight
+    ArrowRight,
+    CalendarDays,
+    Repeat,
+    CalendarCheck
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -44,10 +47,73 @@ function parseLocalDate(dateString: string): Date {
     return new Date(year, month - 1, day)
 }
 
+// Helper to determine date selection mode from news data
+function getDateSelectionMode(news: News): "single" | "range" | "multiple" | "recurring" {
+    // Check recurring first (has recurringDay set)
+    if (news.isRecurring && news.recurringDay !== null && news.recurringDay !== undefined) {
+        return "recurring"
+    }
+    
+    // Check range (has different end date from start date)
+    if (news.endDate && news.endDate.trim() !== "" && news.endDate !== news.startDate) {
+        return "range"
+    }
+    
+    // Check multiple dates (has more than 1 actual non-empty date)
+    // NOTE: Single mode also uses skippedDates with 1 date, so we check for > 1
+    const validSkippedDates = news.skippedDates?.filter(d => d && d.trim() !== "") || []
+    if (validSkippedDates.length > 1) {
+        return "multiple"
+    }
+    
+    // Default to single (includes case where skippedDates has 0 or 1 date)
+    return "single"
+}
+
+const DATE_MODE_CONFIG: Record<string, { label: string; icon: typeof Calendar; className: string }> = {
+    single: {
+        label: "Único",
+        icon: CalendarCheck,
+        className: "bg-teal-500/15 text-teal-600 border-teal-500/30 dark:bg-teal-500/20 dark:text-teal-400"
+    },
+    range: {
+        label: "Rango",
+        icon: CalendarRange,
+        className: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400"
+    },
+    multiple: {
+        label: "Múltiple",
+        icon: CalendarDays,
+        className: "bg-pink-500/15 text-pink-600 border-pink-500/30 dark:bg-pink-500/20 dark:text-pink-400"
+    },
+    recurring: {
+        label: "Recurrente",
+        icon: Repeat,
+        className: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30 dark:bg-cyan-500/20 dark:text-cyan-400"
+    },
+}
+
 interface NewsTableRowProps {
     news: News
     onDelete: (id: string) => void
     onRefresh: () => void
+}
+
+// Helper to get month names in Spanish
+const MONTH_NAMES_SHORT = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
+// Helper to calculate recurring occurrences for the current year
+function calculateRecurringOccurrences(news: News): number {
+    if (!news.isRecurring || news.recurringDay === null || news.recurringDay === undefined) {
+        return 0
+    }
+    
+    // If recurringMonths is empty, it means all 12 months
+    const months = news.recurringMonths && news.recurringMonths.length > 0 
+        ? news.recurringMonths 
+        : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    
+    return months.length
 }
 
 const NEWS_TYPE_CONFIG: Record<NewsType, { label: string; icon: typeof User; className: string }> = {
@@ -113,8 +179,11 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
 
     const typeConfig = NEWS_TYPE_CONFIG[news.type]
     const categoryConfig = NEWS_CATEGORY_CONFIG[news.category]
+    const dateMode = getDateSelectionMode(news)
+    const dateModeConfig = DATE_MODE_CONFIG[dateMode]
     const TypeIcon = typeConfig.icon
     const CategoryIcon = categoryConfig.icon
+    const DateModeIcon = dateModeConfig.icon
 
     const handleToggleStatus = async () => {
         try {
@@ -174,6 +243,20 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
                     </Badge>
                 </TableCell>
 
+                {/* Date Mode Badge */}
+                <TableCell className="hidden sm:table-cell py-3">
+                    <Badge
+                        variant="outline"
+                        className={cn(
+                            "gap-1.5 px-2.5 py-1 font-medium transition-colors",
+                            dateModeConfig.className
+                        )}
+                    >
+                        <DateModeIcon className="h-3.5 w-3.5" />
+                        {dateModeConfig.label}
+                    </Badge>
+                </TableCell>
+
                 {/* Title & Description */}
                 <TableCell className="py-3 max-w-[250px]">
                     <div className="space-y-0.5">
@@ -214,42 +297,79 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
 
                 {/* Dates */}
                 <TableCell className="hidden lg:table-cell py-3">
-                    <div className="flex items-center gap-2">
-                        <div className={cn(
-                            "flex items-center justify-center h-8 w-8 rounded-lg",
-                            hasDateRange 
-                                ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30" 
-                                : "bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/30"
-                        )}>
-                            {hasDateRange ? (
-                                <CalendarRange className="h-4 w-4 text-amber-500" />
-                            ) : (
-                                <Calendar className="h-4 w-4 text-emerald-500" />
-                            )}
+                    {dateMode === "recurring" ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30">
+                                <Repeat className="h-4 w-4 text-cyan-500" />
+                            </div>
+                            <div className="text-sm">
+                                <p className="font-medium text-foreground">
+                                    Día {news.recurringDay} de cada mes
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {news.recurringMonths && news.recurringMonths.length > 0 && news.recurringMonths.length < 12
+                                        ? news.recurringMonths.map(m => MONTH_NAMES_SHORT[m - 1]).join(", ")
+                                        : "Todos los meses"
+                                    }
+                                </p>
+                            </div>
                         </div>
-                        <div className="text-sm">
-                            {hasDateRange ? (
-                                <div className="flex items-center gap-1.5 text-foreground">
-                                    <span className="font-medium">
-                                        {format(parseLocalDate(news.startDate), "dd MMM", { locale: es })}
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <div className={cn(
+                                "flex items-center justify-center h-8 w-8 rounded-lg",
+                                hasDateRange 
+                                    ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30" 
+                                    : "bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/30"
+                            )}>
+                                {hasDateRange ? (
+                                    <CalendarRange className="h-4 w-4 text-amber-500" />
+                                ) : (
+                                    <Calendar className="h-4 w-4 text-emerald-500" />
+                                )}
+                            </div>
+                            <div className="text-sm">
+                                {hasDateRange ? (
+                                    <div className="flex items-center gap-1.5 text-foreground">
+                                        <span className="font-medium">
+                                            {format(parseLocalDate(news.startDate), "dd MMM", { locale: es })}
+                                        </span>
+                                        <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                                        <span className="font-medium">
+                                            {format(parseLocalDate(news.endDate!), "dd MMM", { locale: es })}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="font-medium text-foreground">
+                                        {format(parseLocalDate(news.startDate), "dd 'de' MMMM", { locale: es })}
                                     </span>
-                                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                                    <span className="font-medium">
-                                        {format(parseLocalDate(news.endDate!), "dd MMM", { locale: es })}
-                                    </span>
-                                </div>
-                            ) : (
-                                <span className="font-medium text-foreground">
-                                    {format(parseLocalDate(news.startDate), "dd 'de' MMMM", { locale: es })}
-                                </span>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </TableCell>
 
                 {/* Days / Installments */}
                 <TableCell className="hidden xl:table-cell py-3">
-                    {(news.daysUnavailable !== null && news.daysUnavailable !== undefined) ||
+                    {dateMode === "recurring" ? (
+                        // For recurring news, show the number of occurrences per year
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+                                <Repeat className="h-3.5 w-3.5 text-cyan-500" />
+                                <span className="text-sm font-medium text-foreground">
+                                    {calculateRecurringOccurrences(news)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">días/año</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20">
+                                <Receipt className="h-3.5 w-3.5 text-purple-500" />
+                                <span className="text-sm font-medium text-foreground">
+                                    {calculateRecurringOccurrences(news)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">cuotas/año</span>
+                            </div>
+                        </div>
+                    ) : (news.daysUnavailable !== null && news.daysUnavailable !== undefined) ||
                      (news.installmentsToSubtract !== null && news.installmentsToSubtract !== undefined) ? (
                         <div className="flex items-center gap-3">
                             {news.daysUnavailable !== null && news.daysUnavailable !== undefined && (
