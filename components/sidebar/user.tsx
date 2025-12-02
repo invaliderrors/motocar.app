@@ -1,12 +1,11 @@
 "use client"
-import { BellIcon, CreditCardIcon, LogOutIcon, ChevronUp, UserCircleIcon, Sparkles } from "lucide-react"
+import { LogOutIcon, ChevronUp, Sparkles } from "lucide-react"
 import { useSidebar } from "@/components/ui/sidebar"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -84,27 +83,6 @@ export function NavUser({ user, onLogout }: NavUserProps) {
                                 </div>
                             </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup className="p-1">
-                            <DropdownMenuItem className="gap-3 rounded-lg cursor-pointer">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10">
-                                    <UserCircleIcon className="h-4 w-4 text-blue-500" />
-                                </div>
-                                <span>Mi cuenta</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-3 rounded-lg cursor-pointer">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10">
-                                    <CreditCardIcon className="h-4 w-4 text-emerald-500" />
-                                </div>
-                                <span>Facturación</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-3 rounded-lg cursor-pointer">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/10">
-                                    <BellIcon className="h-4 w-4 text-amber-500" />
-                                </div>
-                                <span>Notificaciones</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <div className="p-1">
                             <DropdownMenuItem 
