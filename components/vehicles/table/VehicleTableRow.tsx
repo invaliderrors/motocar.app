@@ -17,8 +17,10 @@ interface VehicleTableRowProps {
     onDelete: (id: string) => void
 }
 
+type DocumentStatus = 'none' | 'expired' | 'warning' | 'valid'
+
 // Helper function to get document status
-function getDocumentStatus(dueDate: string | null | undefined) {
+function getDocumentStatus(dueDate: string | null | undefined): { status: DocumentStatus; label: string; daysLeft: number | null } {
     if (!dueDate) return { status: 'none', label: 'Sin registro', daysLeft: null }
     
     const now = new Date()
@@ -73,9 +75,9 @@ function DocumentBadge({ dueDate, type }: { dueDate: string | null | undefined, 
             iconColor: 'text-emerald-500 dark:text-emerald-400',
             dotColor: 'bg-emerald-500',
         },
-    }
+    } as const
     
-    const config = statusConfig[status]
+    const config = statusConfig[status as keyof typeof statusConfig]
     const Icon = config.icon
     const formattedDate = new Date(dueDate!).toLocaleDateString('es-CO', { 
         day: '2-digit', 
