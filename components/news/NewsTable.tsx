@@ -65,7 +65,7 @@ export function NewsTable() {
                                 <TableHead className="hidden md:table-cell text-foreground font-medium">
                                     <div className="flex items-center gap-1.5">
                                         <User className="h-4 w-4" />
-                                        <span>Cliente / Vehículo</span>
+                                        <span>Impacta </span>
                                     </div>
                                 </TableHead>
                                 <TableHead className="hidden lg:table-cell text-foreground font-medium">
