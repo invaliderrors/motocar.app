@@ -103,7 +103,7 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
         {/* Form Content */}
         <div className="p-5 overflow-y-auto max-h-[calc(90vh-180px)]">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={onSubmit} className="space-y-5">
               
               {/* Row 1: Type & Provider */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -344,7 +344,7 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
             <Button
               type="submit"
               disabled={loading}
-              onClick={form.handleSubmit(onSubmit)}
+              onClick={onSubmit}
               className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
             >
               {loading ? (
