@@ -11,7 +11,7 @@ export function useNewsTable() {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [itemsPerPage, setItemsPerPage] = useState(15)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [newsToDelete, setNewsToDelete] = useState<string | null>(null)
     

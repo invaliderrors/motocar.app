@@ -17,7 +17,7 @@ export function useExpenseTable() {
     const [categoryFilter, setCategoryFilter] = useState("todos")
     const [providerFilter, setProviderFilter] = useState("todos")
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(5)
+    const [itemsPerPage, setItemsPerPage] = useState(15)
     const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc")
     const [refreshKey, setRefreshKey] = useState(0)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)

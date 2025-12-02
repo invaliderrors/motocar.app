@@ -8,7 +8,7 @@ import { useProviders } from "./useProviders"
 export function useProviderTable() {
     const [searchTerm, setSearchTerm] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(5)
+    const [itemsPerPage, setItemsPerPage] = useState(15)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [providerToDelete, setProviderToDelete] = useState<string | null>(null)
 
