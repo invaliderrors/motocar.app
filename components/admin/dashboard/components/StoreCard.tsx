@@ -115,7 +115,7 @@ export function StoreCard({ store }: StoreCardProps) {
           {[
             { icon: Car, label: "Vehículos", value: store.stats.totalVehicles, color: "purple" },
             { icon: Activity, label: "En uso", value: store.stats.vehiclesInUse, color: "blue" },
-            { icon: FileText, label: "Arriendos", value: store.stats.activeLoans, color: "green" },
+            { icon: FileText, label: "Contratos", value: store.stats.activeLoans, color: "green" },
             { icon: Users, label: "Empleados", value: store.stats.totalEmployees, color: "cyan" },
           ].map((stat) => (
             <div
