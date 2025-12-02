@@ -277,10 +277,10 @@ export function ArchivedLoansDialog({ vehicleId, vehicleInfo, children }: Archiv
                         Cuotas
                       </div>
                       <p className="text-sm">
-                        <span className="font-medium">Pagadas:</span> {loan.paidInstallments} / {loan.installments}
+                        <span className="font-medium">Pagadas:</span> {Number(loan.paidInstallments).toFixed(2)} / {Number(loan.installments).toFixed(0)}
                       </p>
                       <p className="text-sm">
-                        <span className="font-medium">Restantes:</span> {loan.remainingInstallments}
+                        <span className="font-medium">Restantes:</span> {Number(loan.remainingInstallments).toFixed(2)}
                       </p>
                     </div>
                   </div>

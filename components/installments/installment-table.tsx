@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Table, TableBody } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from 'lucide-react'
@@ -22,9 +23,20 @@ import { useTableState } from "./hooks/useTableState"
 import { NotesDialog } from "./components/dialogs/note"
 import { useResourcePermissions } from "@/hooks/useResourcePermissions"
 import { Resource } from "@/lib/types/permissions"
+import { InstallmentDetailsModal } from "./modals/InstallmentDetailsModal"
+import { Installment } from "@/lib/types"
 
 export function InstallmentTable({ onRefresh }: { onRefresh?: (refreshFn: () => void) => void }) {
   const installmentPermissions = useResourcePermissions(Resource.INSTALLMENT)
+
+  // State for installment details modal
+  const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+
+  const handleViewDetails = (installment: Installment) => {
+    setSelectedInstallment(installment)
+    setIsDetailsModalOpen(true)
+  }
 
   const { 
     installments, 
@@ -146,6 +158,7 @@ export function InstallmentTable({ onRefresh }: { onRefresh?: (refreshFn: () => 
                     <InstallmentRow
                       key={installment.id}
                       installment={installment}
+                      onViewDetails={handleViewDetails}
                       onViewAttachment={handleViewAttachment}
                       onSendWhatsapp={handleSendWhatsapp}
                       onPrint={handlePrint}
@@ -205,6 +218,13 @@ export function InstallmentTable({ onRefresh }: { onRefresh?: (refreshFn: () => 
         onOpenChange={setIsNotesDialogOpen}
         notes={selectedNotes}
         title="Notas de la cuota"
+      />
+
+      {/* Installment Details Modal */}
+      <InstallmentDetailsModal
+        installment={selectedInstallment}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
       />
 
       {/* Edit Form */}

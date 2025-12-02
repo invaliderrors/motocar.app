@@ -10,6 +10,7 @@ import { Resource } from "@/lib/types/permissions"
 
 interface ActionsMenuProps {
     installment: Installment
+    onViewDetails?: (installment: Installment) => void
     onViewAttachment?: (installment: Installment) => void
     onSendWhatsapp: (installment: Installment) => void
     onPrint: (installment: Installment) => void
@@ -19,6 +20,7 @@ interface ActionsMenuProps {
 
 export function ActionsMenu({
     installment,
+    onViewDetails,
     onViewAttachment,
     onSendWhatsapp,
     onPrint,
@@ -49,6 +51,17 @@ export function ActionsMenu({
                 className="bg-dark-blue-800/80 backdrop-blur-md border-dark-blue-700 text-white z-50"
                 sideOffset={5}
             >
+                {/* View details - requires INSTALLMENT.VIEW */}
+                {installmentPermissions.canView && onViewDetails && (
+                    <DropdownMenuItem
+                        onClick={() => onViewDetails(installment)}
+                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
+                    >
+                        <Eye className="h-4 w-4 text-blue-400" />
+                        Ver detalles
+                    </DropdownMenuItem>
+                )}
+
                 {/* View attachment - requires INSTALLMENT.VIEW */}
                 {installment.attachmentUrl && onViewAttachment && installmentPermissions.canView && (
                     <DropdownMenuItem

@@ -13,6 +13,7 @@ import { Installment } from "@/lib/types"
 
 interface InstallmentRowProps {
     installment: Installment
+    onViewDetails?: (installment: Installment) => void
     onViewAttachment: (installment: Installment) => void
     onSendWhatsapp: (installment: Installment) => void
     onPrint: (installment: Installment) => void
@@ -23,6 +24,7 @@ interface InstallmentRowProps {
 
 export function InstallmentRow({
     installment,
+    onViewDetails,
     onViewAttachment,
     onSendWhatsapp,
     onPrint,
@@ -312,6 +314,7 @@ export function InstallmentRow({
             <TableCell className="text-right">
                 <ActionsMenu
                     installment={installment}
+                    onViewDetails={onViewDetails}
                     onViewAttachment={onViewAttachment}
                     onSendWhatsapp={onSendWhatsapp}
                     onPrint={onPrint}

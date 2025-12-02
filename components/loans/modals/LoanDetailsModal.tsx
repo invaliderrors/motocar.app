@@ -31,7 +31,7 @@ import {
     Navigation
 } from "lucide-react"
 import { formatCurrency, formatDate, calculatePartialInstallmentDebt, cn } from "@/lib/utils"
-import { Loan } from "@/lib/types"
+import { Loan, Installment } from "@/lib/types"
 
 import {
     PaymentHistoryTable,
@@ -39,6 +39,7 @@ import {
     LoanNotFound,
     useLoanDetails,
 } from "./details"
+import { InstallmentDetailsModal } from "@/components/installments/modals/InstallmentDetailsModal"
 
 interface LoanDetailsModalProps {
     children: React.ReactNode
@@ -122,11 +123,19 @@ interface LoanDetailsContentProps {
 }
 
 function LoanDetailsContent({ loan, interests, currentPage, onPageChange }: LoanDetailsContentProps) {
+    const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null)
+    const [installmentModalOpen, setInstallmentModalOpen] = useState(false)
+    
     const user = loan.user
     const vehicle = loan.vehicle || loan.motorcycle
     const totalWithInterest = loan.totalAmount + (interests * loan.installments || 0)
     const interestGenerated = (interests || 0) * (loan.paidInstallments || 0)
     const progressPercentage = loan.installments ? (loan.paidInstallments / loan.installments) * 100 : 0
+
+    const handleViewPayment = (payment: Installment) => {
+        setSelectedInstallment(payment)
+        setInstallmentModalOpen(true)
+    }
     const partialDebt = calculatePartialInstallmentDebt(loan.remainingInstallments || 0, loan.installmentPaymentAmmount || 0)
     const statusConfig = STATUS_CONFIG[loan.status] || STATUS_CONFIG.PENDING
 
@@ -348,6 +357,14 @@ function LoanDetailsContent({ loan, interests, currentPage, onPageChange }: Loan
                 currentPage={currentPage}
                 itemsPerPage={10}
                 onPageChange={onPageChange}
+                onViewPayment={handleViewPayment}
+            />
+
+            {/* Installment Details Modal */}
+            <InstallmentDetailsModal
+                installment={selectedInstallment}
+                open={installmentModalOpen}
+                onOpenChange={setInstallmentModalOpen}
             />
         </div>
     )

@@ -5,8 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { Loan } from "@/lib/types"
-import { Receipt, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+import { Loan, Installment } from "@/lib/types"
+import { Receipt, ChevronLeft, ChevronRight, MoreHorizontal, Eye } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface PaymentHistoryTableProps {
@@ -14,13 +14,15 @@ interface PaymentHistoryTableProps {
     currentPage: number
     itemsPerPage: number
     onPageChange: (page: number) => void
+    onViewPayment?: (payment: Installment) => void
 }
 
 export function PaymentHistoryTable({ 
     payments, 
     currentPage, 
     itemsPerPage, 
-    onPageChange 
+    onPageChange,
+    onViewPayment
 }: PaymentHistoryTableProps) {
     // Sort payments by date (most recent first)
     const sortedPayments = [...payments].sort(
@@ -60,6 +62,7 @@ export function PaymentHistoryTable({
                                         <TableHead className="font-semibold">ID</TableHead>
                                         <TableHead className="font-semibold">Monto</TableHead>
                                         <TableHead className="font-semibold">Estado</TableHead>
+                                        <TableHead className="font-semibold text-right">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -82,6 +85,17 @@ export function PaymentHistoryTable({
                                             </TableCell>
                                             <TableCell>
                                                 <PaymentStatusBadge isLate={payment.isLate} />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0 hover:bg-primary/10"
+                                                    onClick={() => onViewPayment?.(payment)}
+                                                    title="Ver detalles"
+                                                >
+                                                    <Eye className="h-4 w-4 text-primary" />
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}

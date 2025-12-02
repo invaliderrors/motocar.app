@@ -173,7 +173,7 @@ export function LoanReportTable({ data }: LoanReportTableProps) {
                     <TableCell>{loan.motorcycle}</TableCell>
                     <TableCell className="text-right">{formatCurrency(loan.amount)}</TableCell>
                     <TableCell className="text-center">
-                      {loan.paidInstallments}/{loan.installments}
+                      {Number(loan.paidInstallments).toFixed(2)}/{Number(loan.installments).toFixed(0)}
                     </TableCell>
                     <TableCell className="text-center">{formatDate(loan.startDate)}</TableCell>
                     <TableCell className="text-center">

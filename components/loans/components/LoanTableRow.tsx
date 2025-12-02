@@ -328,7 +328,7 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                     <div className="text-sm flex items-center gap-1.5">
                         <CalendarDays className="h-4 w-4 text-primary" />
                         <span className="font-medium">
-                            {loan.paidInstallments} / {loan.installments}
+                            {Number(loan.paidInstallments).toFixed(2)} / {Number(loan.installments).toFixed(0)}
                         </span>
                     </div>
                 </div>
