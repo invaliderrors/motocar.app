@@ -67,21 +67,21 @@ export function NavFinance({ items, pathname, hasAccess }: NavFinanceProps) {
                                                 isActive={active}
                                                 tooltip={item.label}
                                                 className={cn(
-                                                    "relative group transition-all duration-200 rounded-lg",
+                                                    "relative transition-colors duration-200 rounded-lg",
                                                     active 
-                                                        ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-500/90" 
-                                                        : "hover:bg-muted/80"
+                                                        ? "bg-emerald-500 text-white" 
+                                                        : "hover:bg-muted"
                                                 )}
                                             >
                                                 <Link href={item.path} className="flex items-center gap-3 px-3 py-2.5">
                                                     <div className={cn(
-                                                        "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                                                        "flex items-center justify-center w-8 h-8 rounded-lg",
                                                         active 
                                                             ? "bg-white/20" 
-                                                            : "bg-emerald-500/10 group-hover:bg-emerald-500/20"
+                                                            : "bg-emerald-500/10"
                                                     )}>
                                                         <item.icon className={cn(
-                                                            "h-4 w-4 transition-colors",
+                                                            "h-4 w-4",
                                                             active ? "text-white" : "text-emerald-600 dark:text-emerald-400"
                                                         )} />
                                                     </div>
@@ -89,9 +89,6 @@ export function NavFinance({ items, pathname, hasAccess }: NavFinanceProps) {
                                                         "font-medium text-sm",
                                                         active ? "text-white" : "text-foreground"
                                                     )}>{item.label}</span>
-                                                    {active && (
-                                                        <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-white/50" />
-                                                    )}
                                                 </Link>
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>

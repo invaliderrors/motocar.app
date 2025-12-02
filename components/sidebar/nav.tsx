@@ -49,31 +49,28 @@ export function NavMain({ items, pathname, hasAccess }: NavMainProps) {
                                         isActive={active}
                                         tooltip={item.label}
                                         className={cn(
-                                            "relative group transition-all duration-200 rounded-lg",
+                                            "relative transition-colors duration-200 rounded-lg",
                                             active 
-                                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90" 
-                                                : "hover:bg-muted/80"
+                                                ? "bg-primary text-primary-foreground" 
+                                                : "hover:bg-muted"
                                         )}
                                     >
                                         <Link href={item.path} className="flex items-center gap-3 px-3 py-2.5">
                                             <div className={cn(
-                                                "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                                                "flex items-center justify-center w-8 h-8 rounded-lg",
                                                 active 
                                                     ? "bg-primary-foreground/20" 
-                                                    : "bg-muted group-hover:bg-primary/10"
+                                                    : "bg-muted"
                                             )}>
                                                 <item.icon className={cn(
-                                                    "h-4 w-4 transition-colors",
-                                                    active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
+                                                    "h-4 w-4",
+                                                    active ? "text-primary-foreground" : "text-muted-foreground"
                                                 )} />
                                             </div>
                                             <span className={cn(
                                                 "font-medium text-sm",
                                                 active ? "text-primary-foreground" : "text-foreground"
                                             )}>{item.label}</span>
-                                            {active && (
-                                                <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-primary-foreground/50" />
-                                            )}
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
