@@ -20,10 +20,23 @@ function formatDateString(date: Date): string {
     return `${year}-${month}-${day}`
 }
 
-// Helper to parse YYYY-MM-DD string to Date (local time)
+// Helper to parse YYYY-MM-DD string or ISO date to Date (local time)
 function parseDateString(dateString: string | undefined): Date | undefined {
     if (!dateString) return undefined
-    const [year, month, day] = dateString.split("-").map(Number)
+    
+    // Handle ISO format (from API): "2025-12-01T00:00:00.000Z"
+    if (dateString.includes("T")) {
+        const date = new Date(dateString)
+        if (isNaN(date.getTime())) return undefined
+        // Return a new date using local components to avoid timezone issues
+        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+    }
+    
+    // Handle YYYY-MM-DD format
+    const parts = dateString.split("-")
+    if (parts.length !== 3) return undefined
+    const [year, month, day] = parts.map(Number)
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined
     return new Date(year, month - 1, day)
 }
 

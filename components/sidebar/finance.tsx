@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import { ChevronRight, Wallet, type LucideIcon } from "lucide-react"
 import { useState } from "react"
 
 import {
@@ -12,6 +12,7 @@ import {
     SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { cn } from "@/lib/utils"
 
 type MenuItem = {
     path: string
@@ -36,37 +37,66 @@ export function NavFinance({ items, pathname, hasAccess }: NavFinanceProps) {
     const isAnyItemActive = items.some((item) => isActive(item.path))
 
     return (
-        <SidebarGroup className="pb-4">
+        <SidebarGroup className="pb-2">
             <Collapsible open={isOpen || isAnyItemActive} onOpenChange={setIsOpen} className="w-full">
-                <CollapsibleTrigger className="w-full">
-                    <SidebarGroupLabel className="flex cursor-pointer items-center justify-between px-2 py-1 text-xs font-medium hover:text-foreground">
-                        <span>Finanzas</span>
+                <CollapsibleTrigger className="w-full group">
+                    <SidebarGroupLabel className="flex cursor-pointer items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-foreground transition-colors">
+                        <div className="flex items-center gap-2">
+                            <Wallet className="h-3 w-3" />
+                            <span>Finanzas</span>
+                        </div>
                         <ChevronRight
-                            className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${isOpen || isAnyItemActive ? "rotate-90" : ""
-                                }`}
+                            className={cn(
+                                "h-3.5 w-3.5 text-muted-foreground/50 transition-transform duration-300",
+                                (isOpen || isAnyItemActive) && "rotate-90"
+                            )}
                         />
                     </SidebarGroupLabel>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
+                <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
                     <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="space-y-1 mt-1">
                             {items
                                 .filter((item) => hasAccess(item.path))
-                                .map((item) => (
-                                    <SidebarMenuItem key={item.path}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={isActive(item.path)}
-                                            tooltip={item.label}
-                                            className="transition-all duration-200 hover:bg-accent/50"
-                                        >
-                                            <Link href={item.path} className="flex items-center gap-2">
-                                                <item.icon className="h-4 w-4" />
-                                                <span>{item.label}</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                ))}
+                                .map((item) => {
+                                    const active = isActive(item.path)
+                                    return (
+                                        <SidebarMenuItem key={item.path}>
+                                            <SidebarMenuButton
+                                                asChild
+                                                isActive={active}
+                                                tooltip={item.label}
+                                                className={cn(
+                                                    "relative group transition-all duration-200 rounded-lg",
+                                                    active 
+                                                        ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-500/90" 
+                                                        : "hover:bg-muted/80"
+                                                )}
+                                            >
+                                                <Link href={item.path} className="flex items-center gap-3 px-3 py-2.5">
+                                                    <div className={cn(
+                                                        "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                                                        active 
+                                                            ? "bg-white/20" 
+                                                            : "bg-emerald-500/10 group-hover:bg-emerald-500/20"
+                                                    )}>
+                                                        <item.icon className={cn(
+                                                            "h-4 w-4 transition-colors",
+                                                            active ? "text-white" : "text-emerald-600 dark:text-emerald-400"
+                                                        )} />
+                                                    </div>
+                                                    <span className={cn(
+                                                        "font-medium text-sm",
+                                                        active ? "text-white" : "text-foreground"
+                                                    )}>{item.label}</span>
+                                                    {active && (
+                                                        <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-white/50" />
+                                                    )}
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    )
+                                })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </CollapsibleContent>

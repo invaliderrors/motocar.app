@@ -4,7 +4,7 @@ import { Tag, Bike, Hash, Palette, Gauge, MapPin, Building2, Settings, Shield, W
 export function VehicleTableHeaders() {
     return (
         <TableHeader>
-            <TableRow className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 hover:from-slate-50 hover:to-slate-100 dark:hover:from-slate-900 dark:hover:to-slate-800 border-b-2 border-slate-200 dark:border-slate-700">
+            <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-2 border-slate-200 dark:border-slate-700">
                 <TableHead className="text-slate-700 dark:text-slate-200 font-semibold py-4">
                     <div className="flex items-center gap-2">
                         <div className="p-1 rounded bg-slate-200/50 dark:bg-slate-700/50">
