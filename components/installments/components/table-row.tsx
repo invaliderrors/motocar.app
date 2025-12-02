@@ -45,7 +45,26 @@ export function InstallmentRow({
     }
 
     // Calculate days difference for late or advance payments
+    // Use currentDaysBehind from API if available (shows CURRENT loan status)
+    // Otherwise fall back to calculating from latePaymentDate (legacy behavior)
     const calculateDays = () => {
+        // If the API provides currentDaysBehind, use it for accurate current status
+        if (typeof (installment as any).currentDaysBehind === 'number') {
+            const currentDaysBehind = (installment as any).currentDaysBehind;
+            // If payment was advance, show negative days (ahead)
+            if (installment.isAdvance && installment.advancePaymentDate) {
+                const advanceDate = new Date(installment.advancePaymentDate);
+                advanceDate.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const diffTime = advanceDate.getTime() - today.getTime();
+                const daysAhead = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                if (daysAhead > 0) return -daysAhead; // Negative means ahead
+            }
+            return currentDaysBehind; // Positive means behind
+        }
+
+        // Fallback to old calculation if currentDaysBehind not available
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         
@@ -146,6 +165,56 @@ export function InstallmentRow({
             </TableCell>
             <TableCell className="text-center">
                 {(() => {
+                    // For the most recent installment (has currentDaysBehind), use it to determine status
+                    const isLatestInstallment = typeof (installment as any).currentDaysBehind === 'number';
+                    const currentDaysBehind = (installment as any).currentDaysBehind;
+                    
+                    if (isLatestInstallment) {
+                        // Use current loan status for the latest installment
+                        if (currentDaysBehind === 0) {
+                            // Check if ahead (advance payment)
+                            if (installment.advancePaymentDate) {
+                                const advanceDate = new Date(installment.advancePaymentDate);
+                                advanceDate.setHours(0, 0, 0, 0);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                if (advanceDate > today) {
+                                    return (
+                                        <Badge
+                                            variant="default"
+                                            className="bg-blue-500/80 hover:bg-blue-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                                        >
+                                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                                            <span>Adelantada</span>
+                                        </Badge>
+                                    )
+                                }
+                            }
+                            // Up to date
+                            return (
+                                <Badge
+                                    variant="default"
+                                    className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                                >
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    <span>Al día</span>
+                                </Badge>
+                            )
+                        } else if (currentDaysBehind > 0) {
+                            // Still behind
+                            return (
+                                <Badge
+                                    variant="destructive"
+                                    className="bg-red-500/80 hover:bg-red-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                                >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    <span>Atrasada</span>
+                                </Badge>
+                            )
+                        }
+                    }
+                    
+                    // For older installments, use the original logic based on payment date
                     // Determine the effective status based on payment date and coverage
                     // If late payment has advancePaymentDate, it means the payment covered late days AND put client ahead
                     const hasAdvance = !!installment.advancePaymentDate

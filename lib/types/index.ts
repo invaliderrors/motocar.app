@@ -145,6 +145,11 @@ type Installment = {
     createdAt: string
     updatedAt: string
     cashRegisterId: string | null
+    
+    // Current loan status (calculated by API)
+    currentDaysBehind?: number
+    lastCoveredDate?: string | null
+    isAdvance?: boolean
 
     loan: Loan
 

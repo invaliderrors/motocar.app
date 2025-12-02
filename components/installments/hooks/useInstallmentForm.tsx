@@ -519,10 +519,15 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             const isAdvance = willBeAhead
             const isLate = paymentCoverage?.isLate && !willBeAhead
 
+            // Calculate base amount by subtracting GPS from total amount
+            // values.amount is the TOTAL payment (base + gps), we need to send just the base
+            const gpsAmount = values.gps || 0
+            const baseAmount = values.amount - gpsAmount
+
             const payload: Record<string, any> = {
                 loanId: values.loanId,
-                amount: values.amount,
-                gps: values.gps,
+                amount: baseAmount,  // Send base amount only, not total
+                gps: gpsAmount,
                 paymentMethod: values.paymentMethod,
                 isLate: isLate,
                 isAdvance: isAdvance,
