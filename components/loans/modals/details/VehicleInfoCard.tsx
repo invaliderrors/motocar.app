@@ -28,29 +28,29 @@ export function VehicleInfoCard({ vehicle }: VehicleInfoCardProps) {
     }
 
     return (
-        <Card className="overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
-                <CardTitle className="flex items-center text-base">
+        <Card className="overflow-hidden border-border/50 shadow-sm h-full">
+            <CardHeader className="pb-2 pt-3 px-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
+                <CardTitle className="flex items-center text-sm font-semibold">
                     <Bike className="mr-2 h-4 w-4 text-emerald-500" />
                     Información del Vehículo
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-3 px-4 pb-4">
                 {/* Vehicle Header */}
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
-                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center shadow-sm">
-                        <Bike className="h-7 w-7 text-emerald-500" />
+                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-border/50">
+                    <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                        <Bike className="h-5 w-5 text-emerald-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">
+                        <h3 className="font-semibold text-foreground text-sm truncate">
                             {vehicle.brand} {vehicle.model}
                         </h3>
-                        <p className="text-sm text-muted-foreground">Vehículo</p>
+                        <p className="text-xs text-muted-foreground">Vehículo</p>
                     </div>
                 </div>
 
                 {/* Vehicle Details */}
-                <div className="space-y-3">
+                <div className="space-y-1.5">
                     <InfoRow 
                         icon={<Hash className="h-4 w-4 text-muted-foreground" />}
                         label="Placa" 
@@ -111,16 +111,16 @@ function InfoRow({
     highlight?: boolean
 }) {
     return (
-        <div className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
+        <div className={`flex items-center justify-between py-1.5 px-2 rounded-md transition-colors ${
             highlight 
                 ? "bg-emerald-500/10 border border-emerald-500/20" 
                 : "bg-muted/30 hover:bg-muted/50"
         }`}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
                 {icon}
-                <span className="text-sm text-muted-foreground">{label}</span>
+                <span className="text-xs text-muted-foreground">{label}</span>
             </div>
-            <span className={`text-sm font-medium ${highlight ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
+            <span className={`text-xs font-medium text-right truncate ml-2 ${highlight ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
                 {value}
             </span>
         </div>

@@ -40,16 +40,16 @@ export function ContractStatusBadge({ status, contractNumber, className }: Contr
     }
 
     return (
-        <div className={cn("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-muted/30 border border-border/50", className)}>
-            <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <CreditCard className="h-5 w-5 text-primary" />
+        <div className={cn("flex items-center justify-between gap-3 p-3 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 border border-border/50", className)}>
+            <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Estado del contrato</p>
+                    <p className="text-[10px] font-medium text-muted-foreground">Estado del contrato</p>
                     <Badge
                         variant="outline"
-                        className={cn("px-3 py-1 text-sm font-medium", config.className)}
+                        className={cn("px-2 py-0.5 text-xs font-medium", config.className)}
                     >
                         {config.label}
                     </Badge>
@@ -57,12 +57,9 @@ export function ContractStatusBadge({ status, contractNumber, className }: Contr
             </div>
             
             {contractNumber && (
-                <div className="flex items-center gap-2 sm:text-right">
-                    <FileText className="h-4 w-4 text-muted-foreground sm:hidden" />
-                    <div>
-                        <p className="text-xs font-medium text-muted-foreground">Contrato No.</p>
-                        <p className="text-lg font-bold text-foreground">{contractNumber}</p>
-                    </div>
+                <div className="text-right">
+                    <p className="text-[10px] font-medium text-muted-foreground">Contrato No.</p>
+                    <p className="text-base font-bold text-foreground">{contractNumber}</p>
                 </div>
             )}
         </div>

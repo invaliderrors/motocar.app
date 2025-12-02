@@ -19,13 +19,13 @@ export function ContractDetailsCard({ loan, interests }: ContractDetailsCardProp
 
     return (
         <Card className="overflow-hidden border-border/50 shadow-sm">
-            <CardHeader className="pb-3 bg-gradient-to-r from-violet-500/10 to-purple-500/10">
-                <CardTitle className="flex items-center text-base">
+            <CardHeader className="pb-2 pt-3 px-4 bg-gradient-to-r from-violet-500/10 to-purple-500/10">
+                <CardTitle className="flex items-center text-sm font-semibold">
                     <FileText className="mr-2 h-4 w-4 text-violet-500" />
                     Detalles del Contrato
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4 space-y-4">
+            <CardContent className="pt-3 px-4 pb-4 space-y-3">
                 {/* Contract Status */}
                 <ContractStatusBadge 
                     status={loan.status} 

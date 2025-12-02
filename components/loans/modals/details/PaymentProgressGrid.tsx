@@ -36,14 +36,15 @@ export function PaymentProgressGrid({
     )
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Payment Progress */}
             <ProgressCard
                 icon={<TrendingUp className="h-5 w-5" />}
                 iconColor="text-blue-500"
                 iconBg="from-blue-500/20 to-blue-600/20"
                 label="Progreso de Pagos"
-                value={`${paidInstallments} / ${totalInstallments}`}
+                paid={paidInstallments}
+                total={totalInstallments}
                 progress={progressPercentage}
             />
             
@@ -88,27 +89,32 @@ interface ProgressCardProps {
     iconColor: string
     iconBg: string
     label: string
-    value: string
+    paid: number
+    total: number
     progress: number
 }
 
-function ProgressCard({ icon, iconColor, iconBg, label, value, progress }: ProgressCardProps) {
+function ProgressCard({ icon, iconColor, iconBg, label, paid, total, progress }: ProgressCardProps) {
     return (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50">
-            <div className="flex items-start gap-3 mb-3">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50">
+            <div className="flex items-center gap-3 mb-2">
                 <div className={cn(
-                    "h-10 w-10 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0",
+                    "h-9 w-9 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0",
                     iconBg
                 )}>
                     <span className={iconColor}>{icon}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-muted-foreground">{label}</p>
-                    <p className="text-lg font-bold text-foreground">{value}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+                    <p className="text-base font-bold text-foreground">
+                        <span className="text-primary">{paid}</span>
+                        <span className="text-muted-foreground mx-1">/</span>
+                        <span>{total}</span>
+                    </p>
                 </div>
             </div>
-            <Progress value={progress} className="h-2" />
-            <p className="text-xs text-muted-foreground mt-2 text-right">{progress.toFixed(1)}%</p>
+            <Progress value={progress} className="h-1.5" />
+            <p className="text-[10px] text-muted-foreground mt-1.5 text-right">{progress.toFixed(1)}%</p>
         </div>
     )
 }
@@ -125,18 +131,18 @@ interface StatCardProps {
 
 function StatCard({ icon, iconColor, iconBg, label, value, valueColor, subtitle }: StatCardProps) {
     return (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 hover:border-border transition-colors">
-            <div className="flex items-start gap-3">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 hover:border-border transition-colors">
+            <div className="flex items-center gap-3">
                 <div className={cn(
-                    "h-10 w-10 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0",
+                    "h-9 w-9 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0",
                     iconBg
                 )}>
                     <span className={iconColor}>{icon}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-muted-foreground">{label}</p>
-                    <p className={cn("text-lg font-bold truncate", valueColor)}>{value}</p>
-                    <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
+                    <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+                    <p className={cn("text-base font-bold", valueColor)}>{value}</p>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{subtitle}</div>
                 </div>
             </div>
         </div>

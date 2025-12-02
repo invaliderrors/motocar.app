@@ -19,33 +19,33 @@ export function ClientInfoCard({ user, loanId }: ClientInfoCardProps) {
         .toUpperCase()
 
     return (
-        <Card className="overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3 bg-gradient-to-r from-blue-500/10 to-indigo-500/10">
-                <CardTitle className="flex items-center text-base">
+        <Card className="overflow-hidden border-border/50 shadow-sm h-full">
+            <CardHeader className="pb-2 pt-3 px-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10">
+                <CardTitle className="flex items-center text-sm font-semibold">
                     <Users className="mr-2 h-4 w-4 text-blue-500" />
                     Información del Cliente
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-3 px-4 pb-4">
                 {/* Client Avatar & Name */}
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
-                    <Avatar className="h-14 w-14 border-2 border-blue-500/20 shadow-sm">
+                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-border/50">
+                    <Avatar className="h-11 w-11 border-2 border-blue-500/20">
                         <AvatarImage
-                            src={`/abstract-geometric-shapes.png?height=56&width=56&query=${loanId}`}
+                            src={`/abstract-geometric-shapes.png?height=44&width=44&query=${loanId}`}
                             alt={user.name}
                         />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-400 font-semibold">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-400 font-medium text-sm">
                             {initials}
                         </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{user.name}</h3>
-                        <p className="text-sm text-muted-foreground">Cliente</p>
+                        <h3 className="font-semibold text-foreground text-sm truncate">{user.name}</h3>
+                        <p className="text-xs text-muted-foreground">Cliente</p>
                     </div>
                 </div>
 
                 {/* Client Details */}
-                <div className="space-y-3">
+                <div className="space-y-1.5">
                     <InfoRow 
                         icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
                         label="Identificación" 
@@ -97,12 +97,12 @@ function InfoRow({
     value: string 
 }) {
     return (
-        <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
                 {icon}
-                <span className="text-sm text-muted-foreground">{label}</span>
+                <span className="text-xs text-muted-foreground">{label}</span>
             </div>
-            <span className="text-sm font-medium text-foreground">{value}</span>
+            <span className="text-xs font-medium text-foreground text-right truncate ml-2">{value}</span>
         </div>
     )
 }
