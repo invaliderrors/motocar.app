@@ -276,9 +276,25 @@ export function ArchivedLoansDialog({ vehicleId, vehicleInfo, children }: Archiv
                         <CreditCard className="h-4 w-4" />
                         Cuotas
                       </div>
-                      <p className="text-sm">
-                        <span className="font-medium">Pagadas:</span> {Number(loan.paidInstallments).toFixed(2)} / {Number(loan.installments).toFixed(0)}
-                      </p>
+                      {(() => {
+                        const dailyRate = (loan.installmentPaymentAmmount || 0) + (loan.gpsInstallmentPayment || 0)
+                        const downPaymentInstallments = loan.downPayment > 0 && dailyRate > 0 
+                          ? Math.floor(loan.downPayment / dailyRate) 
+                          : 0
+                        const effectivePaidInstallments = Number(loan.paidInstallments) + downPaymentInstallments
+                        return (
+                          <>
+                            <p className="text-sm">
+                              <span className="font-medium">Pagadas:</span> {effectivePaidInstallments.toFixed(2)} / {Number(loan.installments).toFixed(0)}
+                            </p>
+                            {downPaymentInstallments > 0 && (
+                              <p className="text-xs text-green-600 dark:text-green-400">
+                                Inicial: {downPaymentInstallments} cuotas cubiertas
+                              </p>
+                            )}
+                          </>
+                        )
+                      })()}
                       <p className="text-sm">
                         <span className="font-medium">Restantes:</span> {Number(loan.remainingInstallments).toFixed(2)}
                       </p>

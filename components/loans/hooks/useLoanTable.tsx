@@ -400,8 +400,15 @@ export function useLoanTable() {
                 // Calculate days elapsed
                 const daysElapsed = startDate ? Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)) : 0
                 
-                // Calculate progress percentage
-                const progress = loan.installments > 0 ? Math.round((loan.paidInstallments / loan.installments) * 100) : 0
+                // Calculate installments covered by downpayment
+                const dailyRate = (loan.installmentPaymentAmmount || 0) + (loan.gpsInstallmentPayment || 0)
+                const downPaymentInstallments = loan.downPayment > 0 && dailyRate > 0 
+                    ? Math.floor(loan.downPayment / dailyRate) 
+                    : 0
+                const effectivePaidInstallments = loan.paidInstallments + downPaymentInstallments
+                
+                // Calculate progress percentage including downpayment coverage
+                const progress = loan.installments > 0 ? Math.min(Math.round((effectivePaidInstallments / loan.installments) * 100), 100) : 0
                 
                 // Financed amount (total - down payment)
                 const financedAmount = loan.totalAmount - loan.downPayment
@@ -436,7 +443,7 @@ export function useLoanTable() {
                     
                     // Payment Status
                     escapeCSV(loan.installments),
-                    escapeCSV(loan.paidInstallments),
+                    escapeCSV(effectivePaidInstallments),
                     escapeCSV(loan.remainingInstallments),
                     escapeCSV(formatCurrency(loan.totalPaid)),
                     escapeCSV(formatCurrency(loan.debtRemaining)),

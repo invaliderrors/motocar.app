@@ -14,6 +14,8 @@ interface PaymentProgressGridProps {
     installmentAmount: number
     interestGenerated: number
     interestRate: number
+    downPayment?: number
+    gpsInstallmentPayment?: number
 }
 
 export function PaymentProgressGrid({
@@ -25,9 +27,18 @@ export function PaymentProgressGrid({
     installmentAmount,
     interestGenerated,
     interestRate,
+    downPayment = 0,
+    gpsInstallmentPayment = 0,
 }: PaymentProgressGridProps) {
+    // Calculate installments covered by downpayment
+    const dailyRate = installmentAmount + gpsInstallmentPayment
+    const downPaymentInstallments = downPayment > 0 && dailyRate > 0 
+        ? Math.floor(downPayment / dailyRate) 
+        : 0
+    const effectivePaidInstallments = paidInstallments + downPaymentInstallments
+    
     const progressPercentage = totalInstallments 
-        ? (paidInstallments / totalInstallments) * 100 
+        ? Math.min((effectivePaidInstallments / totalInstallments) * 100, 100)
         : 0
 
     const partialDebt = calculatePartialInstallmentDebt(
@@ -43,9 +54,10 @@ export function PaymentProgressGrid({
                 iconColor="text-blue-500"
                 iconBg="from-blue-500/20 to-blue-600/20"
                 label="Progreso de Pagos"
-                paid={paidInstallments}
+                paid={effectivePaidInstallments}
                 total={totalInstallments}
                 progress={progressPercentage}
+                downPaymentInstallments={downPaymentInstallments}
             />
             
             {/* Total Paid */}
@@ -92,9 +104,10 @@ interface ProgressCardProps {
     paid: number
     total: number
     progress: number
+    downPaymentInstallments?: number
 }
 
-function ProgressCard({ icon, iconColor, iconBg, label, paid, total, progress }: ProgressCardProps) {
+function ProgressCard({ icon, iconColor, iconBg, label, paid, total, progress, downPaymentInstallments = 0 }: ProgressCardProps) {
     return (
         <div className="p-3 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50">
             <div className="flex items-center gap-3 mb-2">
@@ -107,14 +120,19 @@ function ProgressCard({ icon, iconColor, iconBg, label, paid, total, progress }:
                 <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
                     <p className="text-base font-bold text-foreground">
-                        <span className="text-primary">{paid}</span>
+                        <span className="text-primary">{paid.toFixed(2)}</span>
                         <span className="text-muted-foreground mx-1">/</span>
                         <span>{total}</span>
                     </p>
                 </div>
             </div>
             <Progress value={progress} className="h-1.5" />
-            <p className="text-[10px] text-muted-foreground mt-1.5 text-right">{progress.toFixed(1)}%</p>
+            <div className="flex justify-between items-center mt-1.5">
+                {downPaymentInstallments > 0 && (
+                    <p className="text-[10px] text-green-600 dark:text-green-400">Inicial: {downPaymentInstallments} cuotas</p>
+                )}
+                <p className="text-[10px] text-muted-foreground ml-auto">{progress.toFixed(1)}%</p>
+            </div>
         </div>
     )
 }

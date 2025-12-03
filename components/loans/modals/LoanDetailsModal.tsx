@@ -130,7 +130,15 @@ function LoanDetailsContent({ loan, interests, currentPage, onPageChange }: Loan
     const vehicle = loan.vehicle || loan.motorcycle
     const totalWithInterest = loan.totalAmount + (interests * loan.installments || 0)
     const interestGenerated = (interests || 0) * (loan.paidInstallments || 0)
-    const progressPercentage = loan.installments ? (loan.paidInstallments / loan.installments) * 100 : 0
+    
+    // Calculate installments covered by downpayment
+    const dailyRate = (loan.installmentPaymentAmmount || 0) + (loan.gpsInstallmentPayment || 0)
+    const downPaymentInstallments = loan.downPayment > 0 && dailyRate > 0 
+        ? Math.floor(loan.downPayment / dailyRate) 
+        : 0
+    // Total effective paid = actual payments + downpayment coverage
+    const effectivePaidInstallments = (loan.paidInstallments || 0) + downPaymentInstallments
+    const progressPercentage = loan.installments ? Math.min((effectivePaidInstallments / loan.installments) * 100, 100) : 0
 
     const handleViewPayment = (payment: Installment) => {
         setSelectedInstallment(payment)
@@ -282,14 +290,19 @@ function LoanDetailsContent({ loan, interests, currentPage, onPageChange }: Loan
                                 <div>
                                     <p className="text-[10px] text-muted-foreground">Progreso</p>
                                     <p className="text-sm font-bold">
-                                        <span className="text-primary">{Math.round(loan.paidInstallments || 0)}</span>
+                                        <span className="text-primary">{effectivePaidInstallments.toFixed(2)}</span>
                                         <span className="text-muted-foreground"> / </span>
                                         <span>{Math.round(loan.installments || 0)}</span>
                                     </p>
                                 </div>
                             </div>
                             <Progress value={progressPercentage} className="h-1.5" />
-                            <p className="text-[10px] text-muted-foreground mt-1 text-right">{progressPercentage.toFixed(1)}%</p>
+                            <div className="flex justify-between items-center mt-1">
+                                {downPaymentInstallments > 0 && (
+                                    <p className="text-[10px] text-green-600 dark:text-green-400">Inicial: {downPaymentInstallments} cuotas</p>
+                                )}
+                                <p className="text-[10px] text-muted-foreground text-right ml-auto">{progressPercentage.toFixed(1)}%</p>
+                            </div>
                         </div>
 
                         <StatCard 

@@ -324,30 +324,47 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                 </div>
             </TableCell>
             <TableCell className="hidden lg:table-cell">
-                <div className="flex items-center gap-2">
-                    <div className="text-sm flex items-center gap-1.5">
-                        <CalendarDays className="h-4 w-4 text-primary" />
-                        <span className="font-medium">
-                            {Number(loan.paidInstallments).toFixed(2)} / {Number(loan.installments).toFixed(0)}
-                        </span>
-                    </div>
-                </div>
-                {loan.downPayment > 0 && loan.installmentPaymentAmmount > 0 && (
-                    <div className="text-xs text-green-600 dark:text-green-400 mt-0.5">
-                        Inicial: {Math.floor(loan.downPayment / loan.installmentPaymentAmmount)} cuotas cubiertas
-                    </div>
-                )}
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden mt-1.5">
-                    <div
-                        className={cn(
-                            "h-full rounded-full",
-                            loan.status === "COMPLETED" ? "bg-green-500" : loan.status === "DEFAULTED" ? "bg-red-500" : "bg-primary",
-                        )}
-                        style={{
-                            width: `${(loan.paidInstallments / loan.installments) * 100}%`,
-                        }}
-                    />
-                </div>
+                {(() => {
+                    // Calculate installments covered by downpayment
+                    const dailyRate = (loan.installmentPaymentAmmount || 0) + (loan.gpsInstallmentPayment || 0)
+                    const downPaymentInstallments = loan.downPayment > 0 && dailyRate > 0 
+                        ? Math.floor(loan.downPayment / dailyRate) 
+                        : 0
+                    // Total effective paid = actual payments + downpayment coverage
+                    const effectivePaidInstallments = Number(loan.paidInstallments) + downPaymentInstallments
+                    const progressPercentage = loan.installments > 0 
+                        ? Math.min((effectivePaidInstallments / loan.installments) * 100, 100) 
+                        : 0
+                    
+                    return (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <div className="text-sm flex items-center gap-1.5">
+                                    <CalendarDays className="h-4 w-4 text-primary" />
+                                    <span className="font-medium">
+                                        {effectivePaidInstallments.toFixed(2)} / {Number(loan.installments).toFixed(0)}
+                                    </span>
+                                </div>
+                            </div>
+                            {loan.downPayment > 0 && dailyRate > 0 && (
+                                <div className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+                                    Inicial: {downPaymentInstallments} cuotas cubiertas
+                                </div>
+                            )}
+                            <div className="w-full h-2 bg-muted rounded-full overflow-hidden mt-1.5">
+                                <div
+                                    className={cn(
+                                        "h-full rounded-full transition-all",
+                                        loan.status === "COMPLETED" ? "bg-green-500" : loan.status === "DEFAULTED" ? "bg-red-500" : "bg-primary",
+                                    )}
+                                    style={{
+                                        width: `${progressPercentage}%`,
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )
+                })()}
             </TableCell>
             <TableCell className="hidden lg:table-cell font-medium">
                 <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">

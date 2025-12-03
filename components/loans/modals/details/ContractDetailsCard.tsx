@@ -54,6 +54,8 @@ export function ContractDetailsCard({ loan, interests }: ContractDetailsCardProp
                     installmentAmount={loan.installmentPaymentAmmount || 0}
                     interestGenerated={interestGenerated}
                     interestRate={loan.interestRate || 0}
+                    downPayment={loan.downPayment || 0}
+                    gpsInstallmentPayment={loan.gpsInstallmentPayment || 0}
                 />
                 
                 {/* Dates and GPS */}
