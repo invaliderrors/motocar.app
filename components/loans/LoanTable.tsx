@@ -25,7 +25,7 @@ export function LoanTable() {
     statusFilter,
     totalItems,
     totalPages,
-    startIndex,
+    startIndex,   
     endIndex,
     currentItems,
     setSearchTerm,

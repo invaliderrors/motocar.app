@@ -541,7 +541,9 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 if (isLate && paymentCoverage.latePaymentDate) {
                     payload.latePaymentDate = paymentCoverage.latePaymentDate
                 }
-                if (isAdvance) {
+                // Always set advancePaymentDate to coverageEndDate (the last day covered by this payment)
+                // This is needed for display even when the payment doesn't put the client ahead
+                if (paymentCoverage.coverageEndDate) {
                     payload.advancePaymentDate = paymentCoverage.coverageEndDate
                 }
             }
