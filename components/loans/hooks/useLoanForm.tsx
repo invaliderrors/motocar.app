@@ -225,11 +225,10 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 totalPaymentWithGps = paymentAmount + gpsAmount
                 const daysToPayOff = Math.ceil(totalWithInterest / paymentAmount)
                 
-                // Calculate installments covered by downpayment and subtract from total
+                // Calculate installments covered by downpayment (for display purposes only)
                 const downPaymentInstallments = downPayment > 0 && paymentAmount > 0 
                     ? Math.floor(downPayment / paymentAmount) 
                     : 0
-                const effectiveInstallments = Math.max(0, totalInstallments - downPaymentInstallments)
                 
                 if (isMounted.current) {
                     setLoanSummary({
@@ -238,7 +237,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                         paymentAmount,
                         gpsAmount,
                         totalPaymentWithGps,
-                        totalInstallments: effectiveInstallments,
+                        totalInstallments,
                         downPaymentInstallments,
                         daysToPayOff,
                         totalInterest: totalWithInterest - financedAmount,
@@ -248,11 +247,10 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 paymentAmount = totalWithInterest / totalInstallments
                 totalPaymentWithGps = paymentAmount + gpsAmount
                 
-                // Calculate installments covered by downpayment and subtract from total
+                // Calculate installments covered by downpayment (for display purposes only)
                 const downPaymentInstallments = downPayment > 0 && paymentAmount > 0 
                     ? Math.floor(downPayment / paymentAmount) 
                     : 0
-                const effectiveInstallments = Math.max(0, totalInstallments - downPaymentInstallments)
                 
                 if (isMounted.current) {
                     setLoanSummary({
@@ -261,7 +259,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                         paymentAmount,
                         gpsAmount,
                         totalPaymentWithGps,
-                        totalInstallments: effectiveInstallments,
+                        totalInstallments,
                         downPaymentInstallments,
                         totalInterest: totalWithInterest - financedAmount,
                     })
@@ -561,19 +559,11 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 totalInstallments = getInstallmentsFromMonths(values.loanTermMonths, values.paymentFrequency)
             }
 
-            // Calculate effective installments after subtracting downpayment coverage
-            const installmentPaymentAmmount = Number(values.installmentPaymentAmmount) || 32000
-            const downPayment = Number(values.downPayment) || 0
-            const downPaymentInstallments = downPayment > 0 && installmentPaymentAmmount > 0
-                ? Math.floor(downPayment / installmentPaymentAmmount)
-                : 0
-            const effectiveInstallments = Math.max(0, totalInstallments - downPaymentInstallments)
-
             const submissionValues: any = {
                 ...values,
                 totalAmount: Number(values.totalAmount) || 0,
                 downPayment: Number(values.downPayment) || 0,
-                installments: effectiveInstallments,
+                installments: totalInstallments,
                 interestRate: Number(values.interestRate) || 0,
                 installmentPaymentAmmount: Number(values.installmentPaymentAmmount) || 32000,
                 gpsInstallmentPayment: Number(values.gpsAmount) || 0,
