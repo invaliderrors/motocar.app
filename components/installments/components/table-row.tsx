@@ -184,8 +184,19 @@ export function InstallmentRow({
                                 <span>Adelantada</span>
                             </Badge>
                         )
-                    } else if (days > 0) {
-                        // Behind / late
+                    } else if (days === 1) {
+                        // Owes just today - due today
+                        return (
+                            <Badge
+                                variant="default"
+                                className="bg-yellow-500/80 hover:bg-yellow-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium text-black"
+                            >
+                                <Clock className="h-3 w-3 mr-1" />
+                                <span>Vence hoy</span>
+                            </Badge>
+                        )
+                    } else if (days > 1) {
+                        // Behind / late (owes more than just today)
                         return (
                             <Badge
                                 variant="destructive"
@@ -196,7 +207,7 @@ export function InstallmentRow({
                             </Badge>
                         )
                     } else {
-                        // On time
+                        // On time (days === 0, paid through today)
                         return (
                             <Badge
                                 variant="default"

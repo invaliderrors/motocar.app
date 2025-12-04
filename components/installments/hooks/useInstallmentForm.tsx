@@ -513,11 +513,12 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             }
 
             // Use the calculated payment coverage from API for isLate/isAdvance
-            // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead
-            // even if the coverage started from a late date (isLate from API)
+            // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead)
+            // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date)
+            // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind)
             const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
             const isAdvance = willBeAhead
-            const isLate = paymentCoverage?.isLate && !willBeAhead
+            const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
 
             // Calculate base amount by subtracting GPS from total amount
             // values.amount is the TOTAL payment (base + gps), we need to send just the base
@@ -618,10 +619,12 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
     }
 
     // Use API-calculated coverage for isLate/isAdvance
-    // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead
+    // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead)
+    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date)
+    // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind)
     const effectiveWillBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
     const effectiveIsAdvance = effectiveWillBeAhead
-    const effectiveIsLate = paymentCoverage?.isLate && !effectiveWillBeAhead
+    const effectiveIsLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
 
     return {
         // State

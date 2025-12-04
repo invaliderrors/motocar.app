@@ -70,12 +70,14 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     }
 
     // Determine payment status from coverage
-    // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead regardless of isLate
-    // isLate only means the coverage START date was in the past, not that the client will still be behind
+    // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead)
+    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date)
+    // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind)
     const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
     const isAdvance = willBeAhead
-    const isLate = paymentCoverage?.isLate && !willBeAhead
-    const isOnTime = paymentCoverage ? (!paymentCoverage.isLate && paymentCoverage.daysAheadAfterPayment <= 0) : false
+    const willBeUpToDate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment === 0 : false
+    const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
+    const isOnTime = willBeUpToDate
 
     const getFileIcon = (file: File) => {
         if (file.type.startsWith("image/")) {

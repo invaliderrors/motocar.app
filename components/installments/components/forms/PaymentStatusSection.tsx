@@ -69,10 +69,13 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
     }
 
     // Calculate installments owed/ahead based on payment coverage
-    // Key insight: if daysAheadAfterPayment > 0, the payment puts the client ahead regardless of isLate
+    // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead)
+    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date)
+    // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind)
     const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
     const isAdvance = willBeAhead
-    const isLate = paymentCoverage?.isLate && !willBeAhead
+    const willBeUpToDate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment === 0 : false
+    const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
     
     // For late payments, show installments owed
     const installmentsOwed = isLate && paymentCoverage?.dailyRate && paymentCoverage?.amountNeededToCatchUp 
@@ -89,9 +92,14 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
     const getPaymentStatus = () => {
         if (!lastInstallmentInfo && !paymentCoverage) return { status: "unknown", text: "Sin información", color: "gray" }
 
-        // Check for advance payment first
+        // Check for advance payment first (covers days BEYOND today)
         if (isAdvance && paymentCoverage && paymentCoverage.daysAheadAfterPayment > 0) {
             return { status: "advance", text: `Adelantado`, color: "blue" }
+        }
+
+        // Check for up to date (covers exactly through today)
+        if (willBeUpToDate) {
+            return { status: "current", text: "Al día", color: "green" }
         }
 
         if (isLate && installmentsOwed > 0) {

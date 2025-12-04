@@ -216,7 +216,8 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             if (values.paymentFrequency === "DAILY") {
                 paymentAmount = installmentPaymentAmmount
                 totalPaymentWithGps = paymentAmount + gpsAmount
-                const daysToPayOff = Math.ceil(totalWithInterest / paymentAmount)
+                // Use totalInstallments for consistency (already calculated with 30 days per month)
+                const daysToPayOff = totalInstallments
                 
                 // Calculate installments covered by downpayment using TOTAL daily rate (base + GPS)
                 // This matches the table calculation: downPayment / (installmentPaymentAmmount + gpsInstallmentPayment)
@@ -323,12 +324,14 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
         // Only auto-calculate if we have valid payment amount and months
         if (!installmentPaymentAmmount || !loanTermMonths || loanTermMonths <= 0) return
 
-        // Calculate total installments based on frequency
+        // Calculate total installments based on frequency (using 30 days per month)
         const totalInstallments = getInstallmentsFromMonths(loanTermMonths, paymentFrequency)
         
-        // Calculate total with interest (what customer will pay in installments)
-        const paymentWithoutGps = installmentPaymentAmmount - (gpsAmount || 0)
-        const totalWithInterest = paymentWithoutGps * totalInstallments
+        // Calculate total loan amount based on TOTAL daily payment (base + GPS)
+        // Total vehicle price = (base payment + GPS) × installments
+        // Example: 540 × 31,000 = 16,740,000 COP
+        const totalDailyPayment = installmentPaymentAmmount + (gpsAmount || 0)
+        const totalWithInterest = totalDailyPayment * totalInstallments
 
         // Remove interest to get financed amount
         let financedAmount = totalWithInterest

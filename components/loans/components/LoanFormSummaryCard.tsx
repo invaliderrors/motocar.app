@@ -89,9 +89,9 @@ export function LoanFormSummaryCard({
                         <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 mb-1">Total de Pagos:</p>
                         <p className="text-lg font-semibold text-blue-700 dark:text-blue-300">
                             {loanSummary.totalInstallments} pagos {getFrequencyText(formValues.paymentFrequency)}
-                            {formValues.paymentFrequency === "DAILY" && loanSummary.daysToPayOff && (
+                            {formValues.paymentFrequency === "DAILY" && loanSummary.totalInstallments && (
                                 <span className="text-sm font-normal ml-2">
-                                    (aproximadamente {Math.floor(loanSummary.daysToPayOff / 30)} meses y {loanSummary.daysToPayOff % 30}{" "}
+                                    (aproximadamente {Math.floor(loanSummary.totalInstallments / 30)} meses y {loanSummary.totalInstallments % 30}{" "}
                                     días)
                                 </span>
                             )}
