@@ -196,23 +196,14 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                                                     return `${installments} cuotas (calculado desde fechas)`
                                                 }
                                                 
-                                                // Calculate exact days from start date and months
+                                                // Calculate installments using exactly 30 days per month
+                                                // Example: 18 months = 540 installments (18 * 30)
+                                                const DAYS_PER_MONTH = 30
                                                 const getInstallments = (months: number, freq: string, startDate?: string) => {
-                                                    // If we have a start date, calculate exact days for daily
-                                                    if (startDate && freq === "DAILY") {
-                                                        const start = new Date(startDate)
-                                                        const end = new Date(start)
-                                                        end.setMonth(end.getMonth() + months)
-                                                        
-                                                        const diffTime = Math.abs(end.getTime() - start.getTime())
-                                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                                                        return Math.max(1, diffDays)
-                                                    }
-                                                    
                                                     switch (freq) {
-                                                        case "DAILY": return Math.round(months * 30.44)
-                                                        case "WEEKLY": return Math.round(months * 4.33)
-                                                        case "BIWEEKLY": return Math.round(months * 2.17)
+                                                        case "DAILY": return months * DAYS_PER_MONTH
+                                                        case "WEEKLY": return Math.round((months * DAYS_PER_MONTH) / 7)
+                                                        case "BIWEEKLY": return Math.round((months * DAYS_PER_MONTH) / 14)
                                                         case "MONTHLY": return months
                                                         default: return months
                                                     }

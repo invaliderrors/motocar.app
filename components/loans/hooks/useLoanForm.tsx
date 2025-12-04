@@ -32,26 +32,19 @@ interface UseLoanFormProps {
 }
 
 // Helper functions
+// Use exactly 30 days per month for all calculations
+const DAYS_PER_MONTH = 30
+
 const getInstallmentsFromMonths = (months: number, frequency: string, startDate?: string): number => {
-    // If we have a start date, calculate exact days
-    if (startDate && frequency === "DAILY") {
-        const start = new Date(startDate)
-        const end = new Date(start)
-        end.setMonth(end.getMonth() + months)
-        
-        const diffTime = Math.abs(end.getTime() - start.getTime())
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        return Math.max(1, diffDays)
-    }
-    
+    // Always use exactly 30 days per month, regardless of start date
+    // Example: 18 months = 540 installments (18 * 30)
     switch (frequency) {
         case "DAILY":
-            // Fallback: calculate approximate based on average days per month (30.44)
-            return Math.round(months * 30.44)
+            return months * DAYS_PER_MONTH
         case "WEEKLY":
-            return Math.round(months * 4.33) // ~4.33 weeks per month
+            return Math.round((months * DAYS_PER_MONTH) / 7) // 30 days / 7 = ~4.29 weeks per month
         case "BIWEEKLY":
-            return Math.round(months * 2.17) // ~2.17 bi-weeks per month
+            return Math.round((months * DAYS_PER_MONTH) / 14) // 30 days / 14 = ~2.14 bi-weeks per month
         case "MONTHLY":
         default:
             return months
@@ -225,9 +218,10 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 totalPaymentWithGps = paymentAmount + gpsAmount
                 const daysToPayOff = Math.ceil(totalWithInterest / paymentAmount)
                 
-                // Calculate installments covered by downpayment (for display purposes only)
-                const downPaymentInstallments = downPayment > 0 && paymentAmount > 0 
-                    ? Math.floor(downPayment / paymentAmount) 
+                // Calculate installments covered by downpayment using TOTAL daily rate (base + GPS)
+                // This matches the table calculation: downPayment / (installmentPaymentAmmount + gpsInstallmentPayment)
+                const downPaymentInstallments = downPayment > 0 && totalPaymentWithGps > 0 
+                    ? Math.floor(downPayment / totalPaymentWithGps) 
                     : 0
                 
                 if (isMounted.current) {
@@ -247,9 +241,9 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 paymentAmount = totalWithInterest / totalInstallments
                 totalPaymentWithGps = paymentAmount + gpsAmount
                 
-                // Calculate installments covered by downpayment (for display purposes only)
-                const downPaymentInstallments = downPayment > 0 && paymentAmount > 0 
-                    ? Math.floor(downPayment / paymentAmount) 
+                // Calculate installments covered by downpayment using TOTAL payment (base + GPS)
+                const downPaymentInstallments = downPayment > 0 && totalPaymentWithGps > 0 
+                    ? Math.floor(downPayment / totalPaymentWithGps) 
                     : 0
                 
                 if (isMounted.current) {
@@ -547,17 +541,10 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 )
             }
 
-            // Calculate installments based on dates if available, otherwise use loanTermMonths
-            let totalInstallments: number
-            if (values.startDate && endDateToUse) {
-                totalInstallments = calculateInstallmentsFromDates(
-                    values.startDate,
-                    endDateToUse,
-                    values.paymentFrequency
-                )
-            } else {
-                totalInstallments = getInstallmentsFromMonths(values.loanTermMonths, values.paymentFrequency)
-            }
+            // Always calculate installments using the 30-days-per-month rule
+            // This ensures consistency: 18 months = 540 installments (18 × 30)
+            // Don't use calculateInstallmentsFromDates as it counts actual calendar days
+            const totalInstallments = getInstallmentsFromMonths(values.loanTermMonths, values.paymentFrequency)
 
             const submissionValues: any = {
                 ...values,
