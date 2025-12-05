@@ -38,6 +38,26 @@ export function useInstallmentActions(refreshInstallments: () => void) {
         // Determine if it's an advance payment (has advancePaymentDate and not late)
         const isAdvance = !installment.isLate && !!installment.advancePaymentDate
 
+        // Calculate days ahead/behind for the receipt
+        // This should match what the table shows
+        let daysAhead = 0
+        let daysBehind = 0
+        
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        if (isAdvance && installment.advancePaymentDate) {
+            const advanceDate = new Date(installment.advancePaymentDate)
+            advanceDate.setHours(0, 0, 0, 0)
+            const diffTime = advanceDate.getTime() - today.getTime()
+            daysAhead = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+        } else if (installment.isLate && installment.latePaymentDate) {
+            const lateDate = new Date(installment.latePaymentDate)
+            lateDate.setHours(0, 0, 0, 0)
+            const diffTime = today.getTime() - lateDate.getTime()
+            daysBehind = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+        }
+
         const payload = {
             name: installment.loan.user.name.trim(),
             identification: installment.loan.vehicle?.plate || installment.loan.motorcycle?.plate || "N/A",
@@ -59,6 +79,9 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             remainingInstallments: installment.loan.remainingInstallments, // Payment status
             totalInstallments: installment.loan.installments, // Payment status
             lastPaymentDate: lastPaymentDate, // Previous payment date (latePaymentDate if late, advancePaymentDate if advance, otherwise paymentDate)
+            // Pre-calculated days for receipt to use directly
+            daysAhead: daysAhead,
+            daysBehind: daysBehind,
         }
 
 
@@ -174,7 +197,29 @@ export function useInstallmentActions(refreshInstallments: () => void) {
 
             // The last payment date should be THIS installment's closing date
             // Use latePaymentDate if exists (original due date), otherwise paymentDate
-            const lastPaymentDate = installment.latePaymentDate || installment.paymentDate
+            const lastPaymentDate = installment.latePaymentDate || installment.advancePaymentDate || installment.paymentDate
+
+            // Determine if it's an advance payment
+            const isAdvance = !installment.isLate && !!installment.advancePaymentDate
+
+            // Calculate days ahead/behind for the receipt (same as table calculation)
+            let daysAhead = 0
+            let daysBehind = 0
+            
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            
+            if (isAdvance && installment.advancePaymentDate) {
+                const advanceDate = new Date(installment.advancePaymentDate)
+                advanceDate.setHours(0, 0, 0, 0)
+                const diffTime = advanceDate.getTime() - today.getTime()
+                daysAhead = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+            } else if (installment.isLate && installment.latePaymentDate) {
+                const lateDate = new Date(installment.latePaymentDate)
+                lateDate.setHours(0, 0, 0, 0)
+                const diffTime = today.getTime() - lateDate.getTime()
+                daysBehind = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+            }
 
             // Prepare the receipt data
             const receiptData = {
@@ -185,6 +230,8 @@ export function useInstallmentActions(refreshInstallments: () => void) {
                 amount: installment.amount,
                 isLate: installment.isLate, // Include isLate flag
                 latePaymentDate: installment.latePaymentDate, // Include late payment date
+                isAdvance: isAdvance, // Include isAdvance flag
+                advancePaymentDate: installment.advancePaymentDate, // Include advance payment date
                 gps: installment.gps,
                 total: installment.amount,
                 date: installment.paymentDate,
@@ -196,7 +243,10 @@ export function useInstallmentActions(refreshInstallments: () => void) {
                 paidInstallments: installment.loan.paidInstallments, // Payment status
                 remainingInstallments: installment.loan.remainingInstallments, // Payment status
                 totalInstallments: installment.loan.installments, // Payment status
-                lastPaymentDate: lastPaymentDate, // Previous payment date (latePaymentDate if late, otherwise paymentDate)
+                lastPaymentDate: lastPaymentDate, // Previous payment date
+                // Pre-calculated days for receipt to use directly
+                daysAhead: daysAhead,
+                daysBehind: daysBehind,
             }
 
             // Send the request to the whatsapp endpoint
