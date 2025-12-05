@@ -128,55 +128,72 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         return { base: baseAmount, gps: gpsAmount }
     }, [])
 
-    // Auto-calculate GPS when amount changes
+    // Auto-calculate GPS when amount changes (only for NEW installments, not when editing)
     useEffect(() => {
-        if (selectedLoan && amount > 0) {
+        if (!isEditing && selectedLoan && amount > 0) {
             const { gps: calculatedGps } = calculateGpsFromTotal(selectedLoan, amount)
             form.setValue("gps", calculatedGps)
         }
-    }, [selectedLoan, amount, calculateGpsFromTotal, form])
+    }, [selectedLoan, amount, calculateGpsFromTotal, form, isEditing])
 
     // Load installment data for editing
     useEffect(() => {
         if (installment) {
             setIsEditing(true)
             form.setValue("loanId", installment.loanId)
-            form.setValue("amount", installment.amount)
+            // The form uses TOTAL amount (base + GPS), but installment stores them separately
+            // So we need to combine them when loading for editing
+            const totalAmount = (installment.amount || 0) + (installment.gps || 0)
+            form.setValue("amount", totalAmount)
             form.setValue("gps", installment.gps || 0)
             form.setValue("paymentMethod", installment.paymentMethod || "CASH")
             form.setValue("notes", installment.notes || "")
             form.setValue("attachmentUrl", installment.attachmentUrl || "")
             form.setValue("createdById", installment.createdById || user?.id)
 
-            if (!selectedLoan) {
-                const tempLoan = {
+            // Use the loan data from the installment if available
+            if (installment.loan) {
+                // Calculate derived fields that components expect
+                const totalAmount = installment.loan.totalAmount || 0
+                const downPayment = installment.loan.downPayment || 0
+                const financedAmount = totalAmount - downPayment
+                const totalPaid = installment.loan.totalPaid || 0
+                const baseDailyRate = installment.loan.installmentPaymentAmmount || 0
+                const gpsDailyRate = installment.loan.gpsInstallmentPayment || 0
+                const totalDailyRate = baseDailyRate + gpsDailyRate
+
+                const loanFromInstallment = {
                     id: installment.loanId,
-                    user: { name: "Cliente cargando..." },
-                    vehicle: { model: "Cargando...", plate: "" },
-                    debtRemaining: 0,
-                    interestRate: 0,
-                    interestType: "FIXED",
-                    installments: 0,
-                    financedAmount: 0,
-                    totalCapitalPaid: 0,
-                    nextInstallmentNumber: 0,
-                    payments: [],
-                    monthlyPayment: 0,
-                    userId: "",
-                    contractNumber: "",
-                    vehicleId: "",
-                    totalAmount: 0,
-                    downPayment: 0,
-                    startDate: new Date(),
-                    endDate: new Date(),
-                    status: "ACTIVE",
-                    paymentFrequency: "MONTHLY",
-                    paidInstallments: 0,
-                    totalPaid: 0,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
+                    user: installment.loan.user || { name: "Cliente" },
+                    vehicle: installment.loan.vehicle || installment.loan.motorcycle || { model: "", plate: "" },
+                    motorcycle: installment.loan.motorcycle,
+                    debtRemaining: installment.loan.debtRemaining || 0,
+                    interestRate: installment.loan.interestRate || 0,
+                    interestType: installment.loan.interestType || "FIXED",
+                    installments: installment.loan.installments || 0,
+                    // Map to expected field names
+                    financedAmount: financedAmount,
+                    totalCapitalPaid: totalPaid,
+                    nextInstallmentNumber: installment.loan.paidInstallments || 0,
+                    payments: installment.loan.payments || [],
+                    monthlyPayment: totalDailyRate, // Total daily rate (base + GPS)
+                    userId: installment.loan.userId || "",
+                    contractNumber: installment.loan.contractNumber || "",
+                    vehicleId: installment.loan.vehicleId || "",
+                    totalAmount: totalAmount,
+                    downPayment: downPayment,
+                    startDate: installment.loan.startDate ? new Date(installment.loan.startDate) : new Date(),
+                    endDate: installment.loan.endDate ? new Date(installment.loan.endDate) : new Date(),
+                    status: installment.loan.status || "ACTIVE",
+                    paymentFrequency: installment.loan.paymentFrequency || "DAILY",
+                    paidInstallments: installment.loan.paidInstallments || 0,
+                    totalPaid: totalPaid,
+                    createdAt: installment.loan.createdAt ? new Date(installment.loan.createdAt) : new Date(),
+                    updatedAt: installment.loan.updatedAt ? new Date(installment.loan.updatedAt) : new Date(),
+                    installmentPaymentAmmount: baseDailyRate,
+                    gpsInstallmentPayment: gpsDailyRate,
                 } as unknown as EnrichedLoan
-                setSelectedLoan(tempLoan)
+                setSelectedLoan(loanFromInstallment)
             }
 
             // Load dueDate from either new dueDate field or legacy latePaymentDate
@@ -197,10 +214,11 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             form.setValue("paymentDate", new Date())
             form.setValue("createdById", user?.id)
         }
-    }, [installment, form, user, selectedLoan])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [installment, form, user])
 
     // Fetch payment coverage from API
-    const fetchPaymentCoverage = useCallback(async (loanId: string, paymentAmount: number) => {
+    const fetchPaymentCoverage = useCallback(async (loanId: string, paymentAmount: number, excludeInstallmentId?: string) => {
         if (!loanId || paymentAmount <= 0) {
             setPaymentCoverage(null)
             return
@@ -210,7 +228,12 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             setLoadingCoverage(true)
             const response = await HttpService.post<PaymentCoverageResponse>(
                 "/api/v1/installments/calculate-coverage",
-                { loanId, amount: paymentAmount }
+                { 
+                    loanId, 
+                    amount: paymentAmount,
+                    // When editing, exclude this installment from coverage calculation
+                    ...(excludeInstallmentId ? { excludeInstallmentId } : {})
+                }
             )
             setPaymentCoverage(response.data)
             
@@ -237,11 +260,12 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         }
 
         const timeoutId = setTimeout(() => {
-            fetchPaymentCoverage(selectedLoan.id, amount)
+            // When editing, pass the installment ID to exclude it from coverage calculation
+            fetchPaymentCoverage(selectedLoan.id, amount, isEditing ? installment?.id : undefined)
         }, 300)
 
         return () => clearTimeout(timeoutId)
-    }, [selectedLoan?.id, amount, fetchPaymentCoverage])
+    }, [selectedLoan?.id, amount, fetchPaymentCoverage, isEditing, installment?.id])
 
     // Calculate payment breakdown
     useEffect(() => {
