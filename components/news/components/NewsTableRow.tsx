@@ -39,6 +39,8 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 
 // Helper to parse date string to local Date (avoids timezone shift)
 function parseLocalDate(dateString: string): Date {
