@@ -8,6 +8,8 @@ import { ExpenseModal } from "../expense-modal"
 import type { DateRange } from "react-day-picker"
 import type { Provider } from "@/lib/types"
 import { DateRangePicker } from "@/components/common/date-range-picker"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 
 interface ExpenseTableFiltersProps {
     searchTerm: string
@@ -122,12 +124,14 @@ export function ExpenseTableFilters({
                         <SelectItem value="50">50 por página</SelectItem>
                     </SelectContent>
                 </Select>
-                <ExpenseModal onSuccess={onRefresh}>
-                    <Button className="bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white shadow-sm hover:shadow-md transition-all">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nuevo Egreso
-                    </Button>
-                </ExpenseModal>
+                {useResourcePermissions(Resource.EXPENSE).canCreate && (
+                    <ExpenseModal onSuccess={onRefresh}>
+                        <Button className="bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white shadow-sm hover:shadow-md transition-all">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nuevo Egreso
+                        </Button>
+                    </ExpenseModal>
+                )}
             </div>
         </div>
     )

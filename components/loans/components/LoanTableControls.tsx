@@ -37,7 +37,7 @@ export function LoanTableControls({
     onRefresh,
     onExportCSV,
 }: LoanTableControlsProps) {
-    const loanPermissions = useResourcePermissions(Resource.LOAN)
+    const contractPermissions = useResourcePermissions(Resource.CONTRACT)
     const reportPermissions = useResourcePermissions(Resource.REPORT)
 
     return (
@@ -118,8 +118,8 @@ export function LoanTableControls({
                         <span className="hidden sm:inline">Actualizar</span>
                     </Button>
                 )}
-                {/* Export requires REPORT.EXPORT or LOAN.EXPORT */}
-                {onExportCSV && (reportPermissions.canExport || loanPermissions.canExport) && (
+                {/* Export requires REPORT.CREATE or CONTRACT.CREATE */}
+                {onExportCSV && (reportPermissions.canCreate || contractPermissions.canCreate) && (
                     <Button
                         variant="outline"
                         size="sm"
@@ -162,8 +162,8 @@ export function LoanTableControls({
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                {/* Create new loan requires LOAN.CREATE */}
-                {loanPermissions.canCreate && (
+                {/* Create new loan requires CONTRACT.CREATE */}
+                {contractPermissions.canCreate && (
                     <LoanForm onSaved={onRefresh}>
                         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all">
                             <Plus className="mr-2 h-4 w-4" />

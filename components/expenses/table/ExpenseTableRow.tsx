@@ -30,11 +30,14 @@ import {
     Bike,
     Building,
     Percent,
+    AlertCircle,
 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { formatProviderName } from "@/lib/utils"
 import type { Expense } from "@/lib/types"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 
 interface ExpenseTableRowProps {
     expense: Expense
@@ -209,41 +212,93 @@ export function ExpenseTableRow({
                             <span className="sr-only">Ver comprobante</span>
                         </Button>
                     )}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
-                            >
-                                <span className="sr-only">Abrir menú</span>
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => onViewDetails(expense)}>
-                                <Eye className="mr-2 h-4 w-4 text-primary" />
-                                <span>Ver detalles</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEdit(expense)}>
-                                <FileEdit className="mr-2 h-4 w-4 text-amber-500" />
-                                <span>Editar</span>
-                            </DropdownMenuItem>
-                            {expense.attachmentUrl && (
-                                <DropdownMenuItem onClick={() => onViewAttachment(expense.attachmentUrl!)}>
-                                    <FileDown className="mr-2 h-4 w-4 text-green-500" />
-                                    <span>Ver comprobante</span>
-                                </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => onDelete(expense.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Eliminar</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ExpenseRowActions
+                        expense={expense}
+                        onViewDetails={onViewDetails}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onViewAttachment={onViewAttachment}
+                    />
                 </div>
             </TableCell>
         </TableRow>
+    )
+}
+
+function ExpenseRowActions({
+    expense,
+    onViewDetails,
+    onEdit,
+    onDelete,
+    onViewAttachment,
+}: {
+    expense: Expense
+    onViewDetails: (expense: Expense) => void
+    onEdit: (expense: Expense) => void
+    onDelete: (id: string) => void
+    onViewAttachment: (url: string) => void
+}) {
+    const expensePermissions = useResourcePermissions(Resource.EXPENSE)
+    const hasAnyPermission = expensePermissions.hasAnyAccess
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    disabled={!hasAnyPermission}
+                >
+                    <span className="sr-only">Abrir menú</span>
+                    <MoreVertical className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                
+                {/* View details - available if user has any permission */}
+                {hasAnyPermission && (
+                    <DropdownMenuItem onClick={() => onViewDetails(expense)}>
+                        <Eye className="mr-2 h-4 w-4 text-primary" />
+                        <span>Ver detalles</span>
+                    </DropdownMenuItem>
+                )}
+                
+                {/* Edit - requires EXPENSE.EDIT */}
+                {expensePermissions.canEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(expense)}>
+                        <FileEdit className="mr-2 h-4 w-4 text-amber-500" />
+                        <span>Editar</span>
+                    </DropdownMenuItem>
+                )}
+                
+                {/* View attachment - available if user has any permission */}
+                {expense.attachmentUrl && hasAnyPermission && (
+                    <DropdownMenuItem onClick={() => onViewAttachment(expense.attachmentUrl!)}>
+                        <FileDown className="mr-2 h-4 w-4 text-green-500" />
+                        <span>Ver comprobante</span>
+                    </DropdownMenuItem>
+                )}
+                
+                {/* Delete - requires EXPENSE.DELETE */}
+                {expensePermissions.canDelete && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => onDelete(expense.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Eliminar</span>
+                        </DropdownMenuItem>
+                    </>
+                )}
+                
+                {/* Show message if user has no permissions */}
+                {!hasAnyPermission && (
+                    <DropdownMenuItem disabled className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        Sin permisos disponibles
+                    </DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }

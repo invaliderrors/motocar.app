@@ -1,12 +1,14 @@
 "use client"
 
-import type * as React from "react"
+import * as React from "react"
 import Image from "next/image"
 import { useAuth } from "@/hooks/useAuth"
 import { useStore } from "@/contexts/StoreContext"
 import { usePathname, useRouter } from "next/navigation"
 import { useNavigationStore } from "@/lib/nav"
 import { useState, useEffect } from "react"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 import {
     LayoutDashboard,
     User2,
@@ -57,9 +59,43 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
     const [shouldRender, setShouldRender] = useState(false)
     const { open } = useSidebar()
     
+    // Get permissions
+    const dashboardPermissions = useResourcePermissions(Resource.DASHBOARD)
+    
     // Determine if we should show employee view
     const showEmployeeView = isEmployee || isAdminViewingAsEmployee
     const showAdminView = isAdmin && !isAdminViewingAsEmployee
+    
+    // Debug logging
+    useEffect(() => {
+        console.log('=== SIDEBAR DEBUG ===')
+        console.log('Dashboard permissions:', dashboardPermissions)
+        console.log('User:', user)
+        console.log('Is Admin:', isAdmin)
+        console.log('Is Employee:', isEmployee)
+        console.log('Show Employee View:', showEmployeeView)
+        console.log('Show Admin View:', showAdminView)
+    }, [dashboardPermissions, user, isAdmin, isEmployee, showEmployeeView, showAdminView])
+
+    // Main navigation items - Using useMemo to ensure items update when permissions change
+    const mainItems = React.useMemo(() => {
+        const allMainItems = [
+            { path: "/dashboard", label: "Vista General", icon: LayoutDashboard },
+            { path: "/usuarios", label: "Usuarios", icon: User2 },
+            { path: "/vehiculos", label: "Vehículos", icon: Bike },
+            { path: "/proveedores", label: "Proveedores", icon: BadgeCheck },
+        ]
+        
+        return allMainItems.filter(item => {
+            // Filter dashboard based on permission
+            if (item.path === "/dashboard") {
+                console.log('Filtering dashboard:', dashboardPermissions.canView)
+                return dashboardPermissions.canView
+            }
+            // Show other items by default
+            return true
+        })
+    }, [dashboardPermissions.canView])
 
     // Control sidebar rendering based on navigation state
     useEffect(() => {
@@ -100,14 +136,6 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
         logout()
         router.push("/login")
     }
-
-    // Main navigation items - Only for employees
-    const mainItems = [
-        { path: "/dashboard", label: "Vista General", icon: LayoutDashboard },
-        { path: "/usuarios", label: "Usuarios", icon: User2 },
-        { path: "/vehiculos", label: "Vehículos", icon: Bike },
-        { path: "/proveedores", label: "Proveedores", icon: BadgeCheck },
-    ]
 
     // Finance items - Core financial operations - Only for employees
     const financeItems = [

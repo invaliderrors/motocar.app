@@ -27,12 +27,11 @@ export function ActionsMenu({
     onEdit,
     onDelete,
 }: ActionsMenuProps) {
-    // Get permissions for installments and receipts
+    // Get permissions for installments
     const installmentPermissions = useResourcePermissions(Resource.INSTALLMENT)
-    const receiptPermissions = useResourcePermissions(Resource.RECEIPT)
 
     // Check if user has any permissions
-    const hasAnyPermission = installmentPermissions.hasAnyAccess || receiptPermissions.hasAnyAccess
+    const hasAnyPermission = installmentPermissions.hasAnyAccess
 
     return (
         <DropdownMenu>
@@ -41,6 +40,7 @@ export function ActionsMenu({
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-blue-300 hover:text-white hover:bg-dark-blue-800/70"
+                    disabled={!hasAnyPermission}
                 >
                     <MoreVertical className="h-4 w-4" />
                     <span className="sr-only">Opciones</span>
@@ -51,8 +51,8 @@ export function ActionsMenu({
                 className="bg-dark-blue-800/80 backdrop-blur-md border-dark-blue-700 text-white z-50"
                 sideOffset={5}
             >
-                {/* View details - requires INSTALLMENT.VIEW */}
-                {installmentPermissions.canView && onViewDetails && (
+                {/* View details - available if user has any permission */}
+                {hasAnyPermission && onViewDetails && (
                     <DropdownMenuItem
                         onClick={() => onViewDetails(installment)}
                         className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
@@ -62,8 +62,8 @@ export function ActionsMenu({
                     </DropdownMenuItem>
                 )}
 
-                {/* View attachment - requires INSTALLMENT.VIEW */}
-                {installment.attachmentUrl && onViewAttachment && installmentPermissions.canView && (
+                {/* View attachment - available if user has any permission */}
+                {installment.attachmentUrl && onViewAttachment && hasAnyPermission && (
                     <DropdownMenuItem
                         onClick={() => onViewAttachment(installment)}
                         className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
@@ -73,8 +73,8 @@ export function ActionsMenu({
                     </DropdownMenuItem>
                 )}
 
-                {/* Send WhatsApp - requires RECEIPT.VIEW or RECEIPT.CREATE */}
-                {(receiptPermissions.canView || receiptPermissions.canCreate) && (
+                {/* Send WhatsApp - available if user has CREATE permission */}
+                {installmentPermissions.canCreate && (
                     <DropdownMenuItem
                         onClick={() => onSendWhatsapp(installment)}
                         className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
@@ -84,8 +84,8 @@ export function ActionsMenu({
                     </DropdownMenuItem>
                 )}
 
-                {/* Print receipt - requires RECEIPT.VIEW or RECEIPT.CREATE */}
-                {(receiptPermissions.canView || receiptPermissions.canCreate) && (
+                {/* Print receipt - available if user has CREATE permission */}
+                {installmentPermissions.canCreate && (
                     <DropdownMenuItem
                         onClick={() => onPrint(installment)}
                         className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"

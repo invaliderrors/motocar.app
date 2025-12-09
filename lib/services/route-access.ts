@@ -3,7 +3,7 @@ import { getRequiredRole } from "./auth"
 
 export const routeRoleMap: Record<string, Role> = {
     "/admin": "ADMIN",
-    "/dashboard": "ADMIN",
+    // Dashboard is now permission-based, not role-based
     "/flujo-caja": "ADMIN",
 }
 

@@ -72,9 +72,8 @@ interface LoanTableRowProps {
 
 export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, onPrintContract, onStatusUpdated }: LoanTableRowProps) {
     // Get permissions for loans, installments, and contracts
-    const loanPermissions = useResourcePermissions(Resource.LOAN)
-    const installmentPermissions = useResourcePermissions(Resource.INSTALLMENT)
     const contractPermissions = useResourcePermissions(Resource.CONTRACT)
+    const installmentPermissions = useResourcePermissions(Resource.INSTALLMENT)
 
     // State for news dialog (controlled from dropdown)
     const [newsDialogOpen, setNewsDialogOpen] = useState(false)
@@ -457,8 +456,8 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         
-                        {/* View details - requires LOAN.VIEW */}
-                        {loanPermissions.canView && (
+                        {/* View details - available if has any contract permission */}
+                        {contractPermissions.hasAnyAccess && (
                             <LoanDetails loanId={loan.id} loanData={loan}>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                     <Eye className="mr-2 h-4 w-4" />
@@ -477,8 +476,8 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                             </InstallmentForm>
                         )}
 
-                        {/* Generate contract - requires CONTRACT.VIEW or CONTRACT.CREATE */}
-                        {(contractPermissions.canView || contractPermissions.canCreate) && (
+                        {/* Generate contract - requires CONTRACT.CREATE */}
+                        {contractPermissions.canCreate && (
                             <DropdownMenuItem onClick={() => onPrintContract(loan)}>
                                 <Printer className="mr-2 h-4 w-4" />
                                 Generar contrato
@@ -496,8 +495,8 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                             )}
                         </DropdownMenuItem>
 
-                        {/* Edit loan - requires LOAN.EDIT and loan not archived */}
-                        {!loan.archived && loanPermissions.canEdit && (
+                        {/* Edit loan - requires CONTRACT.EDIT and loan not archived */}
+                        {!loan.archived && contractPermissions.canEdit && (
                             <>
                                 <DropdownMenuSeparator />
                                 <LoanForm loanId={loan.id} loanData={loan}>
@@ -536,8 +535,8 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                             </>
                         )}
 
-                        {/* Archive/Unarchive - requires LOAN.EDIT or LOAN.MANAGE */}
-                        {(loanPermissions.canEdit || loanPermissions.canManage) && (
+                        {/* Archive/Unarchive - requires CONTRACT.EDIT */}
+                        {contractPermissions.canEdit && (
                             <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => onArchive(loan.id, loan.archived)}>
@@ -556,8 +555,8 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                             </>
                         )}
 
-                        {/* Delete - requires LOAN.DELETE */}
-                        {loanPermissions.canDelete && (
+                        {/* Delete - requires CONTRACT.DELETE */}
+                        {contractPermissions.canDelete && (
                             <DropdownMenuItem
                                 onClick={() => onDelete(loan.id)}
                                 className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
@@ -568,7 +567,7 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                         )}
 
                         {/* Show message if user has no permissions */}
-                        {!loanPermissions.hasAnyAccess && !installmentPermissions.hasAnyAccess && !contractPermissions.hasAnyAccess && (
+                        {!contractPermissions.hasAnyAccess && !installmentPermissions.hasAnyAccess && (
                             <DropdownMenuItem disabled>
                                 <AlertCircle className="mr-2 h-4 w-4" />
                                 Sin permisos disponibles

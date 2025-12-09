@@ -12,18 +12,36 @@ import { CashFlowChart } from "@/components/dashboard/cash-flow-chart"
 import { LoanStatusChart } from "@/components/dashboard/loan-status-chart"
 import { PaymentCalendar } from "@/components/dashboard/payment-calendar"
 import { QuickActions } from "@/components/dashboard/quick-actions"
-import { AlertCircle, ArrowUpRight, Bell, Download, Filter } from "lucide-react"
+import { AlertCircle, ArrowUpRight, Bell, Download, Filter, ShieldAlert } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { RoleGuard } from "@/components/common/RoleGuard"
 import { DashboardProvider, useDashboardContext } from "@/components/dashboard/dashboard-provider"
 import { useStore } from "@/contexts/StoreContext"
 import { Building2 } from "lucide-react"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 
 function DashboardContent() {
     const { data, loading } = useDashboardContext()
     const { currentStore, isAdmin } = useStore()
+    const dashboardPermissions = useResourcePermissions(Resource.DASHBOARD)
     const pendingPaymentsThisWeek = data?.alerts?.pendingPaymentsThisWeek || 0
+
+    // Check if user has permission to view dashboard
+    if (!dashboardPermissions.canView) {
+        return (
+            <div className="flex-1 w-full overflow-hidden flex items-center justify-center p-8">
+                <Alert className="max-w-md border-destructive/50 bg-destructive/10">
+                    <ShieldAlert className="h-5 w-5 text-destructive" />
+                    <AlertTitle className="text-destructive text-lg font-semibold">Acceso Denegado</AlertTitle>
+                    <AlertDescription className="text-muted-foreground mt-2">
+                        No tienes permisos para acceder al Dashboard. Contacta a tu administrador si necesitas acceso.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )
+    }
 
     return (
         <div className="flex-1 w-full overflow-hidden flex flex-col">

@@ -63,7 +63,7 @@ export function TransactionHeader({
                         <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                         Actualizar
                     </Button>
-                    {(reportPermissions.canExport || closingPermissions.canExport) && (
+                    {(reportPermissions.canCreate || closingPermissions.canCreate) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-9 bg-transparent">

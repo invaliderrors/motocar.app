@@ -108,7 +108,7 @@ export function CashRegisterHistory() {
               <span className="hidden sm:inline">Actualizar</span>
             </Button>
 
-            {(reportPermissions.canExport || closingPermissions.canExport) && (
+            {(reportPermissions.canCreate || closingPermissions.canCreate) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

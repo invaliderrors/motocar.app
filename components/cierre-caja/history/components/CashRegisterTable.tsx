@@ -381,7 +381,7 @@ export const CashRegisterTable: React.FC<CashRegisterTableProps> = ({
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        {closingPermissions.canView && (
+                                        {closingPermissions.hasAnyAccess && (
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -396,7 +396,7 @@ export const CashRegisterTable: React.FC<CashRegisterTableProps> = ({
                                             </TooltipProvider>
                                         )}
 
-                                        {(closingPermissions.canView || reportPermissions.canExport) && (
+                                        {(closingPermissions.hasAnyAccess || reportPermissions.canCreate) && (
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>

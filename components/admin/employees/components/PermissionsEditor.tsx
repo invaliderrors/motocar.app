@@ -28,6 +28,15 @@ export function PermissionsEditor({ permissions, onChange, disabled }: Permissio
   const allResources = Object.values(Resource)
   const allActions = Object.values(Action)
 
+  // Helper to get allowed actions for a resource
+  // Dashboard and Reports are read-only (VIEW only)
+  const getAllowedActions = (resource: Resource): Action[] => {
+    if (resource === Resource.DASHBOARD || resource === Resource.REPORT) {
+      return [Action.VIEW]
+    }
+    return [Action.CREATE, Action.EDIT, Action.DELETE]
+  }
+
   const toggleResource = (resource: Resource) => {
     const newExpanded = new Set(expandedResources)
     if (newExpanded.has(resource)) {
@@ -63,7 +72,8 @@ export function PermissionsEditor({ permissions, onChange, disabled }: Permissio
   const toggleAllActionsForResource = (resource: Resource, enable: boolean) => {
     const newPermissions = { ...permissions }
     if (enable) {
-      newPermissions[resource] = [...allActions]
+      // Only add allowed actions for this resource
+      newPermissions[resource] = getAllowedActions(resource)
     } else {
       delete newPermissions[resource]
     }
@@ -167,7 +177,7 @@ export function PermissionsEditor({ permissions, onChange, disabled }: Permissio
 
               {isExpanded && (
                 <CardContent className="p-4 pt-0 grid grid-cols-2 gap-3">
-                  {allActions.map((action) => {
+                  {getAllowedActions(resource).map((action) => {
                     const isChecked = permissions[resource]?.includes(action) || false
 
                     return (

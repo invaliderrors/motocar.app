@@ -27,22 +27,12 @@ export function useResourcePermissions(resource: Resource) {
     canCreate: hasPermission(resource, Action.CREATE),
     canEdit: hasPermission(resource, Action.EDIT),
     canDelete: hasPermission(resource, Action.DELETE),
-    canApprove: hasPermission(resource, Action.APPROVE),
-    canExport: hasPermission(resource, Action.EXPORT),
-    canManage: hasPermission(resource, Action.MANAGE),
     
     // Convenience computed properties
-    canWrite: 
+    hasAnyAccess: 
+      hasPermission(resource, Action.VIEW) ||
       hasPermission(resource, Action.CREATE) ||
       hasPermission(resource, Action.EDIT) ||
       hasPermission(resource, Action.DELETE),
-    
-    canReadOnly: 
-      hasPermission(resource, Action.VIEW) &&
-      !hasPermission(resource, Action.CREATE) &&
-      !hasPermission(resource, Action.EDIT) &&
-      !hasPermission(resource, Action.DELETE),
-    
-    hasAnyAccess: hasPermission(resource, Action.VIEW),
   }
 }
