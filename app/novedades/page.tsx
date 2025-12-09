@@ -1,8 +1,29 @@
+"use client"
+
 import { NewsTable } from "@/components/news/NewsTable"
 import { PageHeader } from "@/components/common/PageHeader"
-import { Newspaper, Bell } from "lucide-react"
+import { Newspaper, Bell, ShieldAlert } from "lucide-react"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function NewsPage() {
+    const newsPermissions = useResourcePermissions(Resource.NEWS)
+
+    if (!newsPermissions.canView) {
+        return (
+            <div className="flex-1 w-full overflow-hidden flex items-center justify-center p-6">
+                <Alert variant="destructive" className="max-w-md">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Acceso Denegado</AlertTitle>
+                    <AlertDescription>
+                        No tienes permisos para ver novedades.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )
+    }
+
     return (
         <div className="flex-1 w-full overflow-hidden flex flex-col">
             <PageHeader

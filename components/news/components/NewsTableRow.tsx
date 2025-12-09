@@ -176,6 +176,7 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
     const [editOpen, setEditOpen] = useState(false)
     const [togglingStatus, setTogglingStatus] = useState(false)
     const { toast } = useToast()
+    const newsPermissions = useResourcePermissions(Resource.NEWS)
 
     const typeConfig = NEWS_TYPE_CONFIG[news.type]
     const categoryConfig = NEWS_CATEGORY_CONFIG[news.category]
@@ -417,61 +418,71 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
 
                 {/* Actions */}
                 <TableCell className="text-right py-3">
-                    <div className="flex justify-end gap-0.5">
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={handleToggleStatus}
-                                        disabled={togglingStatus}
-                                        className={cn(
-                                            "h-8 w-8 p-0 rounded-lg transition-all",
-                                            news.isActive 
-                                                ? "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10" 
-                                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                                        )}
-                                    >
-                                        <Power className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">
-                                    {news.isActive ? "Desactivar" : "Activar"}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setEditOpen(true)}
-                                        className="h-8 w-8 p-0 rounded-lg text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 transition-all"
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">Editar</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => onDelete(news.id)}
-                                        className="h-8 w-8 p-0 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">Eliminar</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
+                    {!newsPermissions.hasAnyAccess ? (
+                        <p className="text-xs text-muted-foreground italic">Sin permisos disponibles</p>
+                    ) : (
+                        <div className="flex justify-end gap-0.5">
+                            {newsPermissions.canEdit && (
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleToggleStatus}
+                                                disabled={togglingStatus}
+                                                className={cn(
+                                                    "h-8 w-8 p-0 rounded-lg transition-all",
+                                                    news.isActive 
+                                                        ? "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10" 
+                                                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                )}
+                                            >
+                                                <Power className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="text-xs">
+                                            {news.isActive ? "Desactivar" : "Activar"}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                            {newsPermissions.canEdit && (
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditOpen(true)}
+                                                className="h-8 w-8 p-0 rounded-lg text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 transition-all"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="text-xs">Editar</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                            {newsPermissions.canDelete && (
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => onDelete(news.id)}
+                                                className="h-8 w-8 p-0 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="text-xs">Eliminar</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                        </div>
+                    )}
                 </TableCell>
             </TableRow>
 

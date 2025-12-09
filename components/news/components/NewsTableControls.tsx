@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Search, Plus, RefreshCw } from "lucide-react"
 import { useState } from "react"
 import { NewsForm } from "./NewsForm"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 
 interface NewsTableControlsProps {
     searchTerm: string
@@ -18,6 +20,7 @@ export function NewsTableControls({
     onRefresh,
 }: NewsTableControlsProps) {
     const [formOpen, setFormOpen] = useState(false)
+    const newsPermissions = useResourcePermissions(Resource.NEWS)
 
     return (
         <>
@@ -47,14 +50,16 @@ export function NewsTableControls({
                             <span className="hidden sm:inline">Actualizar</span>
                         </Button>
                     )}
-                    <Button
-                        size="sm"
-                        onClick={() => setFormOpen(true)}
-                        className="bg-primary hover:bg-primary/90"
-                    >
-                        <Plus className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Nueva Novedad</span>
-                    </Button>
+                    {newsPermissions.canCreate && (
+                        <Button
+                            size="sm"
+                            onClick={() => setFormOpen(true)}
+                            className="bg-primary hover:bg-primary/90"
+                        >
+                            <Plus className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Nueva Novedad</span>
+                        </Button>
+                    )}
                 </div>
             </div>
 
