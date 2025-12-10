@@ -297,9 +297,9 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
                     control={form.control}
                     name="soatDueDate"
                     label=""
-                    placeholder="Seleccionar vencimiento"
+                    placeholder="25 Noviembre 2026"
                     description=""
-                    type="date"
+                    type="text"
                     required={false}
                   />
                 </div>
@@ -318,9 +318,9 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
                     control={form.control}
                     name="technomechDueDate"
                     label=""
-                    placeholder="Seleccionar vencimiento"
+                    placeholder="25 Noviembre 2026"
                     description=""
-                    type="date"
+                    type="text"
                     required={false}
                   />
                 </div>
