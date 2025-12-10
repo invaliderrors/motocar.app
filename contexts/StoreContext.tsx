@@ -4,7 +4,7 @@ import { Store } from "@/lib/types"
 import { useAuth } from "@/hooks/useAuth"
 import { StoreService } from "@/lib/services/store.service"
 import { useRouter } from "next/navigation"
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 
 interface StoreContextType {
   currentStore: Store | null
@@ -28,7 +28,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [currentStore, setCurrentStore] = useState<Store | null>(null)
   const [allStores, setAllStores] = useState<Store[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [loanRefreshCallbacks, setLoanRefreshCallbacks] = useState<Set<() => void>>(new Set())
+  const loanRefreshCallbacksRef = useRef<Set<() => void>>(new Set())
 
   const isAdmin = !!(user?.role === "ADMIN" || user?.roles?.includes("ADMIN"))
   const isEmployee = !!(user?.role === "EMPLOYEE" || (user?.roles && !user?.roles?.includes("ADMIN")))
@@ -158,22 +158,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const triggerLoanRefresh = () => {
-    loanRefreshCallbacks.forEach(callback => callback())
-  }
+  const triggerLoanRefresh = useCallback(() => {
+    loanRefreshCallbacksRef.current.forEach(callback => callback())
+  }, [])
 
-  const registerLoanRefreshCallback = (callback: () => void) => {
-    setLoanRefreshCallbacks(prev => new Set(prev).add(callback))
+  const registerLoanRefreshCallback = useCallback((callback: () => void) => {
+    loanRefreshCallbacksRef.current.add(callback)
     
     // Return unregister function
     return () => {
-      setLoanRefreshCallbacks(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(callback)
-        return newSet
-      })
+      loanRefreshCallbacksRef.current.delete(callback)
     }
-  }
+  }, [])
 
   return (
     <StoreContext.Provider

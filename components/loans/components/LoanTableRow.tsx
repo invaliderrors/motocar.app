@@ -393,6 +393,11 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
 
                     const isInFuture = coverageDate > new Date()
                     
+                    // Calculate base days and skipped days
+                    const totalDaysCovered = Math.floor(loan.paidInstallments)
+                    const skippedDaysCount = newsSummary?.skippedDatesCount ?? 0
+                    const baseDays = totalDaysCovered - skippedDaysCount
+                    
                     return (
                         <div className="space-y-1">
                             <div className={cn(
@@ -402,9 +407,16 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                                 <CalendarIcon className="h-4 w-4" />
                                 <span>{formatDate(coverageDate, 'd MMM yyyy')}</span>
                             </div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Hash className="h-3 w-3" />
-                                {Math.floor(loan.paidInstallments)} {Math.floor(loan.paidInstallments) === 1 ? 'día' : 'días'}
+                            <div className="text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                    <Hash className="h-3 w-3" />
+                                    <span>Total: {totalDaysCovered} {totalDaysCovered === 1 ? 'día' : 'días'}</span>
+                                </div>
+                                {skippedDaysCount > 0 && (
+                                    <div className="text-[10px] text-amber-600 dark:text-amber-400 ml-4 mt-0.5">
+                                        ({baseDays} {baseDays === 1 ? 'día' : 'días'} base, +{skippedDaysCount} por novedades)
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )
