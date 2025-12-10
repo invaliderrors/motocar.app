@@ -10,7 +10,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File, CalendarX, Coins } from "lucide-react"
+import { CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File, CalendarX, Coins, Newspaper } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { Control } from "react-hook-form"
@@ -55,10 +55,12 @@ interface PaymentDetailsCardProps {
     control: Control<any>
     paymentCoverage?: PaymentCoverageResponse | null
     loadingCoverage?: boolean
+    loanNews?: any[]
+    loadingNews?: boolean
     fileAttachment?: FileAttachmentProps
 }
 
-export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, fileAttachment }: PaymentDetailsCardProps) {
+export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, loanNews = [], loadingNews = false, fileAttachment }: PaymentDetailsCardProps) {
     // Format currency
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-CO', {
@@ -205,6 +207,70 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                 )}
                             </div>
                         )}
+
+                {/* News Applied to this Loan */}
+                {loanNews && loanNews.length > 0 && (
+                    <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-2">
+                        <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5">
+                                <Newspaper className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                                <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                                    Novedades Aplicadas
+                                </span>
+                            </div>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300">
+                                {loanNews.length} {loanNews.length === 1 ? 'novedad' : 'novedades'}
+                            </Badge>
+                        </div>
+                        <div className="space-y-1 max-h-24 overflow-y-auto">
+                            {loanNews.map((news, idx) => {
+                                const isActive = news.isActive
+                                const startDate = news.startDate ? new Date(news.startDate) : null
+                                const endDate = news.endDate ? new Date(news.endDate) : null
+                                const today = new Date()
+                                const isFuture = startDate && startDate > today
+                                const isPast = endDate && endDate < today
+                                
+                                return (
+                                    <div key={news.id || idx} className="text-[10px] text-amber-700 dark:text-amber-300 flex items-start gap-1.5">
+                                        <span className={`mt-0.5 flex-shrink-0 ${isActive ? 'text-green-500' : 'text-gray-400'}`}>
+                                            {isActive ? '●' : '○'}
+                                        </span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="font-medium truncate">{news.title}</span>
+                                                {isFuture && (
+                                                    <Badge variant="outline" className="text-[8px] px-1 py-0 bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700">
+                                                        Futura
+                                                    </Badge>
+                                                )}
+                                                {isPast && !isFuture && (
+                                                    <Badge variant="outline" className="text-[8px] px-1 py-0 bg-gray-50 dark:bg-gray-900/30 border-gray-300 dark:border-gray-700">
+                                                        Pasada
+                                                    </Badge>
+                                                )}
+                                                {!isFuture && !isPast && (
+                                                    <Badge variant="outline" className="text-[8px] px-1 py-0 bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700">
+                                                        Actual
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <div className="text-amber-600/80 dark:text-amber-400/80 mt-0.5">
+                                                {startDate && format(startDate, "dd MMM yyyy", { locale: es })}
+                                                {endDate && ` - ${format(endDate, "dd MMM yyyy", { locale: es })}`}
+                                                {news.skippedDates && news.skippedDates.length > 0 && (
+                                                    <span className="ml-1">
+                                                        ({news.skippedDates.length} {news.skippedDates.length === 1 ? 'día' : 'días'})
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Amount field - GPS is auto-calculated */}
                 <FormField

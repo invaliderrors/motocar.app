@@ -51,6 +51,8 @@ export function InstallmentForm({
     lastInstallmentInfo,
     paymentCoverage,
     loadingCoverage,
+    loanNews,
+    loadingNews,
     handleLoanChange,
     handleFileChange,
     removeFile,
@@ -97,6 +99,8 @@ export function InstallmentForm({
                     control={form.control} 
                     paymentCoverage={paymentCoverage}
                     loadingCoverage={loadingCoverage}
+                    loanNews={loanNews}
+                    loadingNews={loadingNews}
                     fileAttachment={{
                       selectedFile,
                       filePreview,

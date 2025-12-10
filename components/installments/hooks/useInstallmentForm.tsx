@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { HttpService } from "@/lib/http"
 import { useAuth } from "@/hooks/useAuth"
 import { uploadImageToCloudinary } from "@/lib/services/cloudinary"
+import { NewsService } from "@/lib/services/news.service"
 import { utcToZonedTime } from "date-fns-tz"
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -90,6 +91,8 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
     } | null>(null)
     const [paymentCoverage, setPaymentCoverage] = useState<PaymentCoverageResponse | null>(null)
     const [loadingCoverage, setLoadingCoverage] = useState(false)
+    const [loanNews, setLoanNews] = useState<any[]>([])
+    const [loadingNews, setLoadingNews] = useState(false)
 
     const { toast } = useToast()
     const { user } = useAuth()
@@ -251,6 +254,29 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             setLoadingCoverage(false)
         }
     }, [isEditing, form])
+
+    // Fetch all news for the selected loan (past, present, and future)
+    useEffect(() => {
+        if (!selectedLoan?.id) {
+            setLoanNews([])
+            return
+        }
+
+        const fetchNews = async () => {
+            try {
+                setLoadingNews(true)
+                const news = await NewsService.getAllLoanNews(selectedLoan.id)
+                setLoanNews(news)
+            } catch (error) {
+                console.error("Error fetching loan news:", error)
+                setLoanNews([])
+            } finally {
+                setLoadingNews(false)
+            }
+        }
+
+        fetchNews()
+    }, [selectedLoan?.id])
 
     // Debounced effect to fetch payment coverage when amount or loan changes
     useEffect(() => {
@@ -672,6 +698,8 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
         lastInstallmentInfo,
         paymentCoverage,
         loadingCoverage,
+        loanNews,
+        loadingNews,
 
         // Actions
         setOpen,
