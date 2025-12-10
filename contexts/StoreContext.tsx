@@ -16,6 +16,8 @@ interface StoreContextType {
   switchStore: (storeId: string) => void // Admin only
   refreshStores: () => Promise<void>
   isLoading: boolean
+  triggerLoanRefresh: () => void // Trigger loan table refresh from anywhere
+  registerLoanRefreshCallback: (callback: () => void) => () => void // Register/unregister
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -26,6 +28,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [currentStore, setCurrentStore] = useState<Store | null>(null)
   const [allStores, setAllStores] = useState<Store[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loanRefreshCallbacks, setLoanRefreshCallbacks] = useState<Set<() => void>>(new Set())
 
   const isAdmin = !!(user?.role === "ADMIN" || user?.roles?.includes("ADMIN"))
   const isEmployee = !!(user?.role === "EMPLOYEE" || (user?.roles && !user?.roles?.includes("ADMIN")))
@@ -155,6 +158,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const triggerLoanRefresh = () => {
+    loanRefreshCallbacks.forEach(callback => callback())
+  }
+
+  const registerLoanRefreshCallback = (callback: () => void) => {
+    setLoanRefreshCallbacks(prev => new Set(prev).add(callback))
+    
+    // Return unregister function
+    return () => {
+      setLoanRefreshCallbacks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(callback)
+        return newSet
+      })
+    }
+  }
+
   return (
     <StoreContext.Provider
       value={{
@@ -167,6 +187,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         switchStore,
         refreshStores,
         isLoading,
+        triggerLoanRefresh,
+        registerLoanRefreshCallback,
       }}
     >
       {children}

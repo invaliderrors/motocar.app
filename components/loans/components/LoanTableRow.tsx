@@ -18,7 +18,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { formatCurrency, formatDate, cn, calculatePartialInstallmentDebt } from "@/lib/utils"
+import { formatCurrency, formatDate, cn, calculatePartialInstallmentDebt, calculateDownpaymentCoverageDate } from "@/lib/utils"
 import {
     User,
     Bike,
@@ -378,6 +378,37 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                         return `${percentage.toFixed(1)}% del monto financiado`
                     })()}
                 </div>
+            </TableCell>
+            <TableCell className="hidden xl:table-cell">
+                {(() => {
+                    const coverageDate = calculateDownpaymentCoverageDate(loan.startDate, loan.paidInstallments)
+                    
+                    if (!coverageDate) {
+                        return (
+                            <div className="text-sm text-muted-foreground italic">
+                                Sin inicial
+                            </div>
+                        )
+                    }
+
+                    const isInFuture = coverageDate > new Date()
+                    
+                    return (
+                        <div className="space-y-1">
+                            <div className={cn(
+                                "flex items-center gap-1.5 font-medium text-sm",
+                                isInFuture ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"
+                            )}>
+                                <CalendarIcon className="h-4 w-4" />
+                                <span>{formatDate(coverageDate, 'd MMM yyyy')}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Hash className="h-3 w-3" />
+                                {Math.floor(loan.paidInstallments)} {Math.floor(loan.paidInstallments) === 1 ? 'día' : 'días'}
+                            </div>
+                        </div>
+                    )
+                })()}
             </TableCell>
             <TableCell className="hidden xl:table-cell">
                 <div className="space-y-1.5">

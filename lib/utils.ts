@@ -125,3 +125,40 @@ export function calculatePartialInstallmentDebt(
     totalDebt
   }
 }
+
+/**
+ * Calculates until which date the downpayment covers
+ * The loan starts counting the day AFTER creation, so we add paidInstallments + 1
+ * @param startDate - The loan start date
+ * @param paidInstallments - Number of installments already paid (from downpayment)
+ * @returns The date until which the downpayment covers, or null if no coverage
+ */
+export function calculateDownpaymentCoverageDate(
+  startDate: string | Date,
+  paidInstallments: number
+): Date | null {
+  if (paidInstallments <= 0) {
+    return null
+  }
+
+  // Parse start date
+  let startDateObj: Date;
+  if (typeof startDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(startDate)) {
+    const [year, month, day] = startDate.split('T')[0].split('-').map(Number);
+    startDateObj = new Date(year, month - 1, day);
+  } else {
+    startDateObj = typeof startDate === 'object' ? startDate : new Date(startDate);
+  }
+
+  if (isNaN(startDateObj.getTime())) {
+    return null
+  }
+
+  // The loan starts counting the day AFTER creation
+  // So if created on Jan 1 and paidInstallments = 5, it covers: Jan 2, 3, 4, 5, 6
+  // Coverage date = startDate + paidInstallments days
+  const coverageDate = new Date(startDateObj)
+  coverageDate.setDate(coverageDate.getDate() + Math.floor(paidInstallments))
+  
+  return coverageDate
+}

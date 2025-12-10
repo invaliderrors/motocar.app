@@ -15,7 +15,7 @@ export function useNewsTable() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [newsToDelete, setNewsToDelete] = useState<string | null>(null)
     
-    const { currentStore } = useStore()
+    const { currentStore, triggerLoanRefresh } = useStore()
     const { toast } = useToast()
 
     const loadNews = async () => {
@@ -81,6 +81,10 @@ export function useNewsTable() {
                 title: "Novedad eliminada",
                 description: "La novedad ha sido eliminada correctamente",
             })
+            
+            // Trigger loan table refresh to update coverage dates
+            triggerLoanRefresh()
+            
             loadNews()
         } catch (error) {
             console.error("Error deleting news:", error)

@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { HttpService } from "@/lib/http"
 import { Loan } from "@/lib/types"
 import { NewsService } from "@/lib/services/news.service"
+import { useStore } from "@/contexts/StoreContext"
 
 export type NewsSummary = Record<string, { totalNewsCount: number; activeNewsCount: number; totalInstallmentsExcluded: number; skippedDatesCount: number }>
 
@@ -26,6 +27,7 @@ export function useLoanTable() {
     const [statusFilter, setStatusFilter] = useState<string>("all")
 
     const { toast } = useToast()
+    const { registerLoanRefreshCallback } = useStore()
 
     // Auto-adjust items per page based on screen height
     useEffect(() => {
@@ -95,6 +97,14 @@ export function useLoanTable() {
     useEffect(() => {
         fetchLoans()
     }, [refreshKey])
+
+    // Register for loan refresh events (e.g., when news is created/updated/deleted)
+    useEffect(() => {
+        const unregister = registerLoanRefreshCallback(() => {
+            setRefreshKey(prev => prev + 1)
+        })
+        return unregister
+    }, [registerLoanRefreshCallback])
 
     const handleDelete = async (id: string) => {
         setLoanToDelete(id)

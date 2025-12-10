@@ -41,7 +41,7 @@ interface UseNewsFormProps {
 
 export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
     const [loading, setLoading] = useState(false)
-    const { currentStore } = useStore()
+    const { currentStore, triggerLoanRefresh } = useStore()
     const { toast } = useToast()
 
     const form = useForm<NewsFormValues>({
@@ -199,6 +199,9 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 })
             }
 
+            // Trigger loan table refresh to update coverage dates
+            triggerLoanRefresh()
+            
             onSuccess()
         } catch (error) {
             console.error("Error saving news:", error)
