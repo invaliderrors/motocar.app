@@ -47,25 +47,18 @@ export function InstallmentRow({
     }
 
     // Calculate days difference for late or advance payments
-    // Use currentDaysBehind from API if available (shows CURRENT loan status)
+    // Use currentDaysBehind from API if available (shows CURRENT loan status with fractional precision)
     // Otherwise fall back to calculating from latePaymentDate (legacy behavior)
     const calculateDays = () => {
-        // If the API provides currentDaysBehind, use it for accurate current status
+        // If the API provides currentDaysBehind, use it directly - it's already accurate with fractional values
+        // Negative = ahead, Positive = behind, Zero = up to date
         if (typeof (installment as any).currentDaysBehind === 'number') {
-            const currentDaysBehind = (installment as any).currentDaysBehind;
-            // If payment was advance, show negative days (ahead)
-            if (installment.isAdvance && installment.advancePaymentDate) {
-                const advanceDate = new Date(installment.advancePaymentDate);
-                advanceDate.setHours(0, 0, 0, 0);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const diffTime = advanceDate.getTime() - today.getTime();
-                const daysAhead = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                if (daysAhead > 0) return -daysAhead; // Negative means ahead
-            }
-            return currentDaysBehind; // Positive means behind
+            console.log('📊 Using currentDaysBehind from API:', (installment as any).currentDaysBehind, 'for loan:', installment.loanId);
+            return (installment as any).currentDaysBehind;
         }
 
+        console.log('⚠️ No currentDaysBehind, using fallback calculation for installment:', installment.id);
+        
         // Fallback to old calculation if currentDaysBehind not available
         const today = new Date()
         today.setHours(0, 0, 0, 0)
@@ -74,19 +67,20 @@ export function InstallmentRow({
             const dueDate = new Date(installment.latePaymentDate)
             dueDate.setHours(0, 0, 0, 0)
             const diffTime = today.getTime() - dueDate.getTime()
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+            const diffDays = diffTime / (1000 * 60 * 60 * 24)
             return diffDays // Positive for late
         } else if (installment.advancePaymentDate) {
             const advanceDate = new Date(installment.advancePaymentDate)
             advanceDate.setHours(0, 0, 0, 0)
             const diffTime = advanceDate.getTime() - today.getTime()
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+            const diffDays = diffTime / (1000 * 60 * 60 * 24)
             return -diffDays // Negative for advance
         }
         return 0 // On time
     }
 
     const days = calculateDays()
+    console.log('📍 Final days value for row:', days, 'installment:', installment.id)
 
     return (
         <TableRow className="border-border hover:bg-muted/50 transition-colors duration-150">
@@ -153,7 +147,7 @@ export function InstallmentRow({
                         days > 0 ? 'text-red-400' : 'text-blue-400'
                     }`}>
                         <Clock className="mr-2 h-4 w-4" />
-                        {days > 0 ? `+${days}` : days}
+                        {days > 0 ? `+${days.toFixed(1)}` : days.toFixed(1)}
                     </div>
                 ) : (
                     <div className="flex items-center justify-center text-muted-foreground">
@@ -171,10 +165,10 @@ export function InstallmentRow({
             <TableCell className="text-center">
                 {(() => {
                     // Use the calculated days value for consistent status display
-                    // days < 0 = ahead/advance, days > 0 = behind/late, days === 0 = on time
+                    // days < 0 = ahead/advance, days > 0 = behind/late, days ≈ 0 = on time
                     
-                    if (days < 0) {
-                        // Paid ahead / advance
+                    if (days < -0.01) {
+                        // Paid ahead / advance (more than 0.01 days ahead)
                         return (
                             <Badge
                                 variant="default"
@@ -184,8 +178,8 @@ export function InstallmentRow({
                                 <span>Adelantada</span>
                             </Badge>
                         )
-                    } else if (days === 1) {
-                        // Owes just today - due today
+                    } else if (days >= 0.99 && days < 1.01) {
+                        // Owes approximately 1 day - due today
                         return (
                             <Badge
                                 variant="default"
@@ -195,8 +189,8 @@ export function InstallmentRow({
                                 <span>Vence hoy</span>
                             </Badge>
                         )
-                    } else if (days > 1) {
-                        // Behind / late (owes more than just today)
+                    } else if (days > 1.01) {
+                        // Behind / late (owes more than 1 day)
                         return (
                             <Badge
                                 variant="destructive"
@@ -207,7 +201,7 @@ export function InstallmentRow({
                             </Badge>
                         )
                     } else {
-                        // On time (days === 0, paid through today)
+                        // On time (days between -0.01 and 0.99, essentially up to date)
                         return (
                             <Badge
                                 variant="default"

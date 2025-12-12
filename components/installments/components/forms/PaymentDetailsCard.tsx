@@ -171,7 +171,7 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                                             : 'text-green-700 dark:text-green-400'
                                                 }`}>
                                                     {isAdvance
-                                                        ? `${Math.floor(paymentCoverage.daysAheadAfterPayment)} día(s) adelantado`
+                                                        ? `${paymentCoverage.daysAheadAfterPayment.toFixed(1)} día(s) adelantado`
                                                         : isLate 
                                                             ? `${paymentCoverage.daysBehind} día(s) atrasado` 
                                                             : 'Al día'

@@ -82,9 +82,9 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
         ? Math.ceil(paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate)
         : 0
     
-    // For advance payments, show installments ahead
-    const installmentsAhead = isAdvance && paymentCoverage?.dailyRate && paymentCoverage?.daysAheadAfterPayment
-        ? Math.floor(paymentCoverage.daysAheadAfterPayment)
+    // For advance payments, show installments ahead (with fractional support)
+    const installmentsAhead = isAdvance && paymentCoverage?.daysAheadAfterPayment
+        ? paymentCoverage.daysAheadAfterPayment
         : 0
     
     const amountOwed = isLate ? (paymentCoverage?.amountNeededToCatchUp ?? 0) : 0
@@ -176,7 +176,7 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                                 {isAdvance ? 'Cuotas adelantadas:' : 'Cuotas atrasadas:'}
                             </p>
                             <p className={`text-lg font-bold ${isAdvance ? 'text-blue-600' : installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {isAdvance ? installmentsAhead : installmentsOwed}
+                                {isAdvance ? installmentsAhead.toFixed(1) : installmentsOwed}
                             </p>
                         </div>
                         <div className="text-right">
