@@ -15,19 +15,19 @@ export default function NewsPage() {
         return null
     }
 
-    if (!newsPermissions.canView) {
-        return (
-            <div className="flex-1 w-full overflow-hidden flex items-center justify-center p-6">
-                <Alert variant="destructive" className="max-w-md">
-                    <ShieldAlert className="h-4 w-4" />
-                    <AlertTitle>Acceso Denegado</AlertTitle>
-                    <AlertDescription>
-                        No tienes permisos para ver novedades.
-                    </AlertDescription>
-                </Alert>
-            </div>
-        )
-    }
+    // if (!newsPermissions.canView) {
+    //     return (
+    //         <div className="flex-1 w-full overflow-hidden flex items-center justify-center p-6">
+    //             <Alert variant="destructive" className="max-w-md">
+    //                 <ShieldAlert className="h-4 w-4" />
+    //                 <AlertTitle>Acceso Denegado</AlertTitle>
+    //                 <AlertDescription>
+    //                     No tienes permisos para ver novedades.
+    //                 </AlertDescription>
+    //             </Alert>
+    //         </div>
+    //     )
+    // }
 
     return (
         <div className="flex-1 w-full overflow-hidden flex flex-col">
