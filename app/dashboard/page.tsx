@@ -28,6 +28,11 @@ function DashboardContent() {
     const dashboardPermissions = useResourcePermissions(Resource.DASHBOARD)
     const pendingPaymentsThisWeek = data?.alerts?.pendingPaymentsThisWeek || 0
 
+    // Wait for permissions to load before checking access
+    if (dashboardPermissions.isLoading) {
+        return null
+    }
+
     // Check if user has permission to view dashboard
     if (!dashboardPermissions.canView) {
         return (

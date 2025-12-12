@@ -10,6 +10,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 export default function NewsPage() {
     const newsPermissions = useResourcePermissions(Resource.NEWS)
 
+    // Wait for permissions to load before checking access
+    if (newsPermissions.isLoading) {
+        return null
+    }
+
     if (!newsPermissions.canView) {
         return (
             <div className="flex-1 w-full overflow-hidden flex items-center justify-center p-6">

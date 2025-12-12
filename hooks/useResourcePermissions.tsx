@@ -20,13 +20,14 @@ import { Action, Resource } from "@/lib/types/permissions"
  * }
  */
 export function useResourcePermissions(resource: Resource) {
-  const { hasPermission } = usePermissions()
+  const { hasPermission, isLoading } = usePermissions()
 
   return {
     canView: hasPermission(resource, Action.VIEW),
     canCreate: hasPermission(resource, Action.CREATE),
     canEdit: hasPermission(resource, Action.EDIT),
     canDelete: hasPermission(resource, Action.DELETE),
+    isLoading,
     
     // Convenience computed properties
     hasAnyAccess: 
