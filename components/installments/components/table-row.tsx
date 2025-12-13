@@ -178,18 +178,18 @@ export function InstallmentRow({
                                 <span>Adelantada</span>
                             </Badge>
                         )
-                    } else if (days >= 0.99 && days < 1.01) {
-                        // Owes approximately 1 day - due today
+                    } else if (days >= -0.01 && days <= 1.01) {
+                        // On time (days between -0.01 and 1.01, within 1 day tolerance)
                         return (
                             <Badge
                                 variant="default"
-                                className="bg-yellow-500/80 hover:bg-yellow-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium text-black"
+                                className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
                             >
-                                <Clock className="h-3 w-3 mr-1" />
-                                <span>Vence hoy</span>
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                <span>Al día</span>
                             </Badge>
                         )
-                    } else if (days > 1.01) {
+                    } else {
                         // Behind / late (owes more than 1 day)
                         return (
                             <Badge
@@ -198,17 +198,6 @@ export function InstallmentRow({
                             >
                                 <AlertTriangle className="h-3 w-3 mr-1" />
                                 <span>Atrasada</span>
-                            </Badge>
-                        )
-                    } else {
-                        // On time (days between -0.01 and 0.99, essentially up to date)
-                        return (
-                            <Badge
-                                variant="default"
-                                className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
-                            >
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                <span>Al día</span>
                             </Badge>
                         )
                     }
