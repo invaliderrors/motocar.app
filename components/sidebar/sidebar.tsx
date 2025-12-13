@@ -31,6 +31,7 @@ import {
     Building2,
     Newspaper,
     Sparkles,
+    FileSearch,
 } from "lucide-react"
 
 import {
@@ -173,6 +174,11 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
             path: "/admin/usuarios",
             label: "Empleados",
             icon: Users2Icon,
+        },
+        {
+            path: "/admin/audit-logs",
+            label: "Auditoría",
+            icon: FileSearch,
         },
     ]
 

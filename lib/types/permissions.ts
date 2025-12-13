@@ -11,6 +11,7 @@ export enum Resource {
   REPORT = 'REPORT',             // Reportes
   VEHICLE = 'VEHICLE',           // Vehículos
   USER = 'USER',                 // Usuarios
+  AUDIT_LOG = 'AUDIT_LOG',       // Registros de Auditoría
 }
 
 export enum Action {
@@ -41,6 +42,7 @@ export const RESOURCE_LABELS: Record<Resource, string> = {
   [Resource.REPORT]: 'Reportes',
   [Resource.VEHICLE]: 'Vehículos',
   [Resource.USER]: 'Usuarios',
+  [Resource.AUDIT_LOG]: 'Registros de Auditoría',
 };
 
 export const ACTION_LABELS: Record<Action, string> = {

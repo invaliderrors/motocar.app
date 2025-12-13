@@ -29,9 +29,9 @@ export function PermissionsEditor({ permissions, onChange, disabled }: Permissio
   const allActions = Object.values(Action)
 
   // Helper to get allowed actions for a resource
-  // Dashboard and Reports are read-only (VIEW only)
+  // Dashboard, Reports, and Audit Logs are read-only (VIEW only)
   const getAllowedActions = (resource: Resource): Action[] => {
-    if (resource === Resource.DASHBOARD || resource === Resource.REPORT) {
+    if (resource === Resource.DASHBOARD || resource === Resource.REPORT || resource === Resource.AUDIT_LOG) {
       return [Action.VIEW]
     }
     return [Action.CREATE, Action.EDIT, Action.DELETE]
