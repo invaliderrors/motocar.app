@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 import { Search, Plus } from "lucide-react"
 import type { User as UserType } from "@/lib/types"
 import { UserForm } from "../../UserForm"
@@ -24,6 +26,8 @@ export function UserTableControls({
     setCurrentPage,
     onUserCreated,
 }: TableControlsProps) {
+    const userPermissions = useResourcePermissions(Resource.USER)
+
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-sm">
@@ -54,12 +58,14 @@ export function UserTableControls({
                         <SelectItem value="50">50 por página</SelectItem>
                     </SelectContent>
                 </Select>
-                <UserForm onCreated={onUserCreated}>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nuevo Usuario
-                    </Button>
-                </UserForm>
+                {userPermissions.canCreate && (
+                    <UserForm onCreated={onUserCreated}>
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nuevo Usuario
+                        </Button>
+                    </UserForm>
+                )}
             </div>
         </div>
     )

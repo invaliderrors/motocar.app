@@ -3,6 +3,8 @@
 import { TableRow, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 import { Edit, Trash2, User, Phone, Home, Hash, Calendar, MapPin } from "lucide-react"
 import type { User as UserType } from "@/lib/types"
 import { UserForm } from "../../UserForm"
@@ -15,6 +17,8 @@ interface UserTableRowProps {
 }
 
 export function UserTableRow({ user, index, onEdit, onDelete }: UserTableRowProps) {
+    const userPermissions = useResourcePermissions(Resource.USER)
+
     return (
         <TableRow
             key={`user-row-${user.id}-${index}`}
@@ -95,47 +99,53 @@ export function UserTableRow({ user, index, onEdit, onDelete }: UserTableRowProp
             
             {/* Actions */}
             <TableCell className="py-3.5 text-right">
-                <div className="flex justify-end gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div key={`edit-wrapper-${user.id}-${index}`}>
-                                    <UserForm userId={user.id} userData={user} onCreated={onEdit}>
+                {(userPermissions.canEdit || userPermissions.canDelete) && (
+                    <div className="flex justify-end gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
+                        {userPermissions.canEdit && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div key={`edit-wrapper-${user.id}-${index}`}>
+                                            <UserForm userId={user.id} userData={user} onCreated={onEdit}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 rounded-lg bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                                                >
+                                                    <Edit className="h-3.5 w-3.5" />
+                                                    <span className="sr-only">Editar</span>
+                                                </Button>
+                                            </UserForm>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Editar usuario</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                        {userPermissions.canDelete && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8 rounded-lg bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                                            onClick={() => onDelete(user.id)}
+                                            className="h-8 w-8 rounded-lg bg-destructive/5 text-destructive hover:bg-destructive hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
                                         >
-                                            <Edit className="h-3.5 w-3.5" />
-                                            <span className="sr-only">Editar</span>
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            <span className="sr-only">Eliminar</span>
                                         </Button>
-                                    </UserForm>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Editar usuario</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => onDelete(user.id)}
-                                    className="h-8 w-8 rounded-lg bg-destructive/5 text-destructive hover:bg-destructive hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    <span className="sr-only">Eliminar</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Eliminar usuario</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Eliminar usuario</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
+                )}
             </TableCell>
         </TableRow>
     )
