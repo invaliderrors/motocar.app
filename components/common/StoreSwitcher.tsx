@@ -113,9 +113,8 @@ export function StoreSwitcher() {
                 Puntos ({allStores.length})
               </span>
             </div>
-            <ScrollArea className="max-h-[200px]">
-              <div className="space-y-0.5">
-                {allStores.map((store) => (
+            <div className="max-h-[300px] overflow-y-auto space-y-0.5">
+              {allStores.map((store) => (
                   <SelectItem
                     key={store.id}
                     value={store.id}
@@ -143,8 +142,7 @@ export function StoreSwitcher() {
                     </div>
                   </SelectItem>
                 ))}
-              </div>
-            </ScrollArea>
+            </div>
           </>
         )}
       </SelectContent>
@@ -212,9 +210,8 @@ export function StoreSwitcherCompact() {
         </SelectItem>
         
         {allStores.length > 0 && (
-          <ScrollArea className="max-h-[160px] mt-1">
-            <div className="space-y-0.5">
-              {allStores.map((store) => (
+          <div className="max-h-[200px] overflow-y-auto mt-1 space-y-0.5">
+            {allStores.map((store) => (
                 <SelectItem
                   key={store.id}
                   value={store.id}
@@ -239,8 +236,7 @@ export function StoreSwitcherCompact() {
                   </div>
                 </SelectItem>
               ))}
-            </div>
-          </ScrollArea>
+          </div>
         )}
       </SelectContent>
     </Select>
