@@ -4,7 +4,9 @@ import { TableRow, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Edit, Trash2, AlertTriangle, CheckCircle2, Clock, MapPin, Building2, Gauge, Bike } from "lucide-react"
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
+import { Edit, Trash2, MapPin, Building2, Gauge, Bike } from "lucide-react"
 import type { Vehicle } from "@/lib/types"
 import { VehicleForm } from "../VehicleForm"
 
@@ -20,26 +22,14 @@ interface VehicleTableRowProps {
 type DocumentStatus = 'none' | 'expired' | 'warning' | 'valid'
 
 // Helper function to get document status
-function getDocumentStatus(dueDate: string | null | undefined): { status: DocumentStatus; label: string; daysLeft: number | null } {
-    if (!dueDate) return { status: 'none', label: 'Sin registro', daysLeft: null }
-    
-    const now = new Date()
-    const due = new Date(dueDate)
-    const diffTime = due.getTime() - now.getTime()
-    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (daysLeft < 0) {
-        return { status: 'expired', label: 'Vencido', daysLeft: Math.abs(daysLeft) }
-    } else if (daysLeft <= 30) {
-        return { status: 'warning', label: 'Por vencer', daysLeft }
-    } else {
-        return { status: 'valid', label: 'Vigente', daysLeft }
-    }
+function getDocumentStatus(dueDate: string | null | undefined): { status: DocumentStatus; text: string } {
+    if (!dueDate || dueDate.trim() === '') return { status: 'none', text: 'Sin registro' }
+    return { status: 'valid', text: dueDate }
 }
 
 // Document status badge component
 function DocumentBadge({ dueDate, type }: { dueDate: string | null | undefined, type: 'soat' | 'technomech' }) {
-    const { status, label, daysLeft } = getDocumentStatus(dueDate)
+    const { status, text } = getDocumentStatus(dueDate)
     
     if (status === 'none') {
         return (
@@ -50,71 +40,12 @@ function DocumentBadge({ dueDate, type }: { dueDate: string | null | undefined, 
         )
     }
     
-    const statusConfig = {
-        expired: {
-            icon: AlertTriangle,
-            bgColor: 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/30',
-            borderColor: 'border-red-200 dark:border-red-800/50',
-            textColor: 'text-red-700 dark:text-red-400',
-            iconColor: 'text-red-500 dark:text-red-400',
-            dotColor: 'bg-red-500',
-        },
-        warning: {
-            icon: Clock,
-            bgColor: 'bg-gradient-to-r from-amber-50 to-yellow-100 dark:from-amber-950/40 dark:to-yellow-900/30',
-            borderColor: 'border-amber-200 dark:border-amber-800/50',
-            textColor: 'text-amber-700 dark:text-amber-400',
-            iconColor: 'text-amber-500 dark:text-amber-400',
-            dotColor: 'bg-amber-500',
-        },
-        valid: {
-            icon: CheckCircle2,
-            bgColor: 'bg-gradient-to-r from-emerald-50 to-green-100 dark:from-emerald-950/40 dark:to-green-900/30',
-            borderColor: 'border-emerald-200 dark:border-emerald-800/50',
-            textColor: 'text-emerald-700 dark:text-emerald-400',
-            iconColor: 'text-emerald-500 dark:text-emerald-400',
-            dotColor: 'bg-emerald-500',
-        },
-    } as const
-    
-    const config = statusConfig[status as keyof typeof statusConfig]
-    const Icon = config.icon
-    const formattedDate = new Date(dueDate!).toLocaleDateString('es-CO', { 
-        day: '2-digit', 
-        month: 'short',
-        year: '2-digit'
-    })
-    
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div className={`
-                        inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-                        ${config.bgColor} ${config.borderColor} border
-                        transition-all duration-200 hover:shadow-sm cursor-default
-                    `}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor} animate-pulse`} />
-                        <span className={`text-xs font-medium ${config.textColor}`}>
-                            {formattedDate}
-                        </span>
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                    <div className="flex flex-col gap-0.5">
-                        <span className="font-medium">{type === 'soat' ? 'SOAT' : 'Tecnomecánica'}</span>
-                        <span className={config.textColor}>
-                            {status === 'expired' 
-                                ? `Venció hace ${daysLeft} días`
-                                : status === 'warning'
-                                ? `Vence en ${daysLeft} días`
-                                : `Vigente por ${daysLeft} días`
-                            }
-                        </span>
-                    </div>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/40 dark:to-slate-800/30 border border-slate-200 dark:border-slate-700/50 transition-all duration-200 hover:shadow-sm">
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                {text}
+            </span>
+        </div>
     )
 }
 
@@ -126,6 +57,8 @@ export function VehicleTableRow({
     onEdit,
     onDelete,
 }: VehicleTableRowProps) {
+    const vehiclePermissions = useResourcePermissions(Resource.VEHICLE)
+
     return (
         <TableRow
             key={`moto-row-${moto.id}-${index}`}
@@ -228,38 +161,44 @@ export function VehicleTableRow({
             
             {/* Actions */}
             <TableCell className="py-3.5 text-right">
-                <div className="flex justify-end gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
-                    <div key={`edit-wrapper-${moto.id}-${index}`}>
-                        <VehicleForm vehicleId={moto.id} vehicleData={moto} onCreated={onEdit}>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-lg bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
-                            >
-                                <Edit className="h-3.5 w-3.5" />
-                                <span className="sr-only">Editar</span>
-                            </Button>
-                        </VehicleForm>
+                {(vehiclePermissions.canEdit || vehiclePermissions.canDelete) && (
+                    <div className="flex justify-end gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
+                        {vehiclePermissions.canEdit && (
+                            <div key={`edit-wrapper-${moto.id}-${index}`}>
+                                <VehicleForm vehicleId={moto.id} vehicleData={moto} onCreated={onEdit}>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-lg bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                                    >
+                                        <Edit className="h-3.5 w-3.5" />
+                                        <span className="sr-only">Editar</span>
+                                    </Button>
+                                </VehicleForm>
+                            </div>
+                        )}
+                        {vehiclePermissions.canDelete && (
+                            <TooltipProvider key={`delete-tooltip-${moto.id}-${index}`}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => onDelete(moto.id)}
+                                            className="h-8 w-8 rounded-lg bg-destructive/5 text-destructive hover:bg-destructive hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            <span className="sr-only">Eliminar</span>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Eliminar vehículo</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
                     </div>
-                    <TooltipProvider key={`delete-tooltip-${moto.id}-${index}`}>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => onDelete(moto.id)}
-                                    className="h-8 w-8 rounded-lg bg-destructive/5 text-destructive hover:bg-destructive hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    <span className="sr-only">Eliminar</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Eliminar vehículo</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
+                )}
             </TableCell>
         </TableRow>
     )

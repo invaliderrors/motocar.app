@@ -9,6 +9,7 @@ export enum Resource {
   NEWS = 'NEWS',                 // Novedades
   PROVIDER = 'PROVIDER',         // Proveedores
   REPORT = 'REPORT',             // Reportes
+  VEHICLE = 'VEHICLE',           // Vehículos
 }
 
 export enum Action {
@@ -37,6 +38,7 @@ export const RESOURCE_LABELS: Record<Resource, string> = {
   [Resource.NEWS]: 'Novedades',
   [Resource.PROVIDER]: 'Proveedores',
   [Resource.REPORT]: 'Reportes',
+  [Resource.VEHICLE]: 'Vehículos',
 };
 
 export const ACTION_LABELS: Record<Action, string> = {

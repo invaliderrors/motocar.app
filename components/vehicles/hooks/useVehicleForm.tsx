@@ -67,22 +67,6 @@ export function useVehicleForm({ vehicleId, vehicleData, onCreated, onClose }: U
         mode: "onChange",
     })
 
-    // Helper to convert ISO date string to YYYY-MM-DD format
-    const formatDateForForm = (dateString: string | null | undefined): string => {
-        if (!dateString) return ""
-        try {
-            const date = new Date(dateString)
-            if (isNaN(date.getTime())) return ""
-            // Use UTC components to avoid timezone issues
-            const year = date.getUTCFullYear()
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0")
-            const day = String(date.getUTCDate()).padStart(2, "0")
-            return `${year}-${month}-${day}`
-        } catch {
-            return ""
-        }
-    }
-
     // Populate form with existing vehicle data
     useEffect(() => {
         if (vehicleData) {
@@ -98,8 +82,8 @@ export function useVehicleForm({ vehicleId, vehicleData, onCreated, onClose }: U
                 color: vehicleData.color ?? "",
                 cc: vehicleData.cc ?? undefined,
                 gps: vehicleData.gps ?? undefined,
-                soatDueDate: formatDateForForm(vehicleData.soatDueDate),
-                technomechDueDate: formatDateForForm(vehicleData.technomechDueDate),
+                soatDueDate: vehicleData.soatDueDate ?? "",
+                technomechDueDate: vehicleData.technomechDueDate ?? "",
             })
         }
     }, [vehicleData, form])

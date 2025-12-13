@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { useResourcePermissions } from "@/hooks/useResourcePermissions"
+import { Resource } from "@/lib/types/permissions"
 import { Search, Plus, Filter } from "lucide-react"
 import type { Vehicle } from "@/lib/types"
 import { VehicleForm } from "../VehicleForm"
@@ -41,6 +42,8 @@ export function VehicleTableControls({
     getVehicleTypeLabel,
     onVehicleCreated,
 }: VehicleTableControlsProps) {
+    const vehiclePermissions = useResourcePermissions(Resource.VEHICLE)
+
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -95,12 +98,14 @@ export function VehicleTableControls({
                         <SelectItem value="50">50 por página</SelectItem>
                     </SelectContent>
                 </Select>
-                <VehicleForm onCreated={onVehicleCreated}>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nueva vehículo
-                    </Button>
-                </VehicleForm>
+                {vehiclePermissions.canCreate && (
+                    <VehicleForm onCreated={onVehicleCreated}>
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nueva vehículo
+                        </Button>
+                    </VehicleForm>
+                )}
             </div>
         </div>
     )
