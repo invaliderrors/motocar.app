@@ -16,20 +16,20 @@ const vehicleSchema = z.object({
     model: z.string().min(2, { message: "El modelo debe tener al menos 2 caracteres" }),
     plate: z.string().min(5, { message: "La placa debe tener al menos 5 caracteres" }),
     price: z.preprocess(
-        (val) => (val === "" || val === null ? undefined : Number(val)),
+        (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
         z.number().min(0, { message: "El precio debe ser un número positivo" }).optional(),
-    ),
+    ).optional(),
     engine: z.string().min(5, { message: "El número de motor debe tener al menos 5 caracteres" }).optional().or(z.literal("")),
     chassis: z.string().min(5, { message: "El número de chasis debe tener al menos 5 caracteres" }).optional().or(z.literal("")),
     color: z.string().optional().or(z.literal("")),
     cc: z.preprocess(
-        (val) => (val === "" || val === null ? undefined : Number(val)),
+        (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
         z.number().min(1, { message: "El cilindraje debe ser un número positivo" }).optional(),
-    ),
+    ).optional(),
     gps: z.preprocess(
-        (val) => (val === "" || val === null ? undefined : Number(val)),
+        (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
         z.number().min(1, { message: "El GPS debe ser un número mayor o igual a 1" }).optional(),
-    ),
+    ).optional(),
     soatDueDate: z.string().optional().or(z.literal("")),
     technomechDueDate: z.string().optional().or(z.literal("")),
 })
