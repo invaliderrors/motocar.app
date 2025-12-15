@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress"
 import { CalendarIcon, AlertTriangle, CheckCircle, Clock, Loader2, Paperclip, X, FileText, ImageIcon, File, CalendarX, Coins, Newspaper } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { utcToZonedTime } from "date-fns-tz"
 import type { Control } from "react-hook-form"
 import {
     Tooltip,
@@ -61,6 +62,14 @@ interface PaymentDetailsCardProps {
 }
 
 export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, loanNews = [], loadingNews = false, fileAttachment }: PaymentDetailsCardProps) {
+    // Colombian timezone
+    const COLOMBIA_TZ = "America/Bogota"
+    
+    // Helper function to convert date to Colombian time
+    const toColombianTime = (date: Date | string) => {
+        return utcToZonedTime(new Date(date), COLOMBIA_TZ)
+    }
+    
     // Format currency
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-CO', {
@@ -186,7 +195,7 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                         <div className="flex justify-between text-[10px] text-muted-foreground">
                                             <span>Cuota: {formatCurrency(paymentCoverage.dailyRate)}</span>
                                             <span>
-                                                {format(new Date(paymentCoverage.coverageStartDate), "dd MMM", { locale: es })} - {format(new Date(paymentCoverage.coverageEndDate), "dd MMM", { locale: es })}
+                                                {format(toColombianTime(paymentCoverage.coverageStartDate), "dd MMM", { locale: es })} - {format(toColombianTime(paymentCoverage.coverageEndDate), "dd MMM", { locale: es })}
                                             </span>
                                         </div>
 
