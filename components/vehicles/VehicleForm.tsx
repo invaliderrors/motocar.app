@@ -10,21 +10,19 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { Vehicle } from "@/lib/types"
 import { useVehicleForm } from "./hooks/useVehicleForm"
 import { FormErrorSummary } from "./form/VehicleErrorFormSummary"
-import { 
-  Bike, 
+import {
+  Bike,
   Car,
-  X, 
-  Save, 
-  Loader2, 
+  X,
+  Save,
+  Loader2,
   Settings,
   Shield,
   Truck,
   Palette,
   Gauge,
   Cog,
-  MapPin,
   FileText,
-  DollarSign,
   Hash,
   Building2
 } from "lucide-react"
@@ -136,7 +134,7 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
                   </div>
                   <span className="font-medium">Identificación</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Hash className="h-3.5 w-3.5 text-muted-foreground" />
@@ -177,21 +175,6 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
                       description=""
                     />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">Precio</span>
-                    </div>
-                    <VehicleFormField
-                      control={form.control}
-                      name="price"
-                      label=""
-                      placeholder="0"
-                      description=""
-                      type="number"
-                      required={false}
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -203,7 +186,7 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
                   </div>
                   <span className="font-medium">Especificaciones Técnicas</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Palette className="h-3.5 w-3.5 text-muted-foreground" />
@@ -260,21 +243,6 @@ export function VehicleForm({ children, vehicleId, vehicleData, onCreated }: Pro
                       placeholder="Número de chasis"
                       description=""
                       className="font-mono uppercase text-xs"
-                      required={false}
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">GPS</span>
-                    </div>
-                    <VehicleFormField
-                      control={form.control}
-                      name="gps"
-                      label=""
-                      placeholder="Código GPS"
-                      description=""
-                      type="number"
                       required={false}
                     />
                   </div>
