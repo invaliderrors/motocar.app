@@ -28,6 +28,14 @@ const toColombianTime = (date: Date | string) => {
     return utcToZonedTime(new Date(date), COLOMBIA_TZ)
 }
 
+// Helper to parse date preserving calendar date (no timezone conversion)
+const parseCalendarDate = (dateString: Date | string) => {
+    const str = typeof dateString === 'string' ? dateString : dateString.toISOString()
+    const [datePart] = str.split('T')
+    const [year, month, day] = datePart.split('-').map(Number)
+    return new Date(year, month - 1, day)
+}
+
 // Payment coverage response type from API
 interface PaymentCoverageInfo {
     dailyRate: number
@@ -185,7 +193,7 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                             </p>
                             <p className={`text-sm font-bold ${isAdvance ? 'text-blue-600' : amountOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
                                 {isAdvance && paymentCoverage 
-                                    ? format(new Date(paymentCoverage.coverageEndDate), "dd/MM/yyyy", { locale: es })
+                                    ? format(parseCalendarDate(paymentCoverage.coverageEndDate), "dd/MM/yyyy", { locale: es })
                                     : formatCurrency(amountOwed)
                                 }
                             </p>

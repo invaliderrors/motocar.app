@@ -65,9 +65,17 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     // Colombian timezone
     const COLOMBIA_TZ = "America/Bogota"
     
-    // Helper function to convert date to Colombian time
+    // Helper function to convert date to Colombian time (for display purposes only)
     const toColombianTime = (date: Date | string) => {
         return utcToZonedTime(new Date(date), COLOMBIA_TZ)
+    }
+    
+    // Helper to parse date preserving calendar date (no timezone conversion)
+    const parseCalendarDate = (dateString: Date | string) => {
+        const str = typeof dateString === 'string' ? dateString : dateString.toISOString()
+        const [datePart] = str.split('T')
+        const [year, month, day] = datePart.split('-').map(Number)
+        return new Date(year, month - 1, day)
     }
     
     // Format currency
@@ -195,7 +203,7 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                         <div className="flex justify-between text-[10px] text-muted-foreground">
                                             <span>Cuota: {formatCurrency(paymentCoverage.dailyRate)}</span>
                                             <span>
-                                                {format(toColombianTime(paymentCoverage.coverageStartDate), "dd MMM", { locale: es })} - {format(toColombianTime(paymentCoverage.coverageEndDate), "dd MMM", { locale: es })}
+                                                {format(parseCalendarDate(paymentCoverage.coverageStartDate), "dd MMM", { locale: es })} - {format(parseCalendarDate(paymentCoverage.coverageEndDate), "dd MMM", { locale: es })}
                                             </span>
                                         </div>
 
