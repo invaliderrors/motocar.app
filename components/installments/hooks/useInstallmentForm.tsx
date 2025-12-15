@@ -200,14 +200,22 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             }
 
             // Load dueDate from either new dueDate field or legacy latePaymentDate
+            // Parse dates preserving the calendar date (not affected by timezone)
             if (installment.dueDate) {
-                form.setValue("dueDate", new Date(installment.dueDate))
+                const dueDateStr = installment.dueDate.split('T')[0]
+                const [year, month, day] = dueDateStr.split('-').map(Number)
+                form.setValue("dueDate", new Date(year, month - 1, day))
             } else if (installment.latePaymentDate) {
-                form.setValue("dueDate", new Date(installment.latePaymentDate))
+                const lateDateStr = installment.latePaymentDate.split('T')[0]
+                const [year, month, day] = lateDateStr.split('-').map(Number)
+                form.setValue("dueDate", new Date(year, month - 1, day))
             }
             
             if (installment.paymentDate) {
-                form.setValue("paymentDate", new Date(installment.paymentDate))
+                // Parse payment date preserving the calendar date
+                const paymentDateStr = installment.paymentDate.split('T')[0]
+                const [year, month, day] = paymentDateStr.split('-').map(Number)
+                form.setValue("paymentDate", new Date(year, month - 1, day))
             }
             if (installment.attachmentUrl) {
                 setFilePreview(installment.attachmentUrl)
