@@ -1,7 +1,14 @@
+import { utcToZonedTime } from "date-fns-tz"
+
+const COLOMBIA_TZ = "America/Bogota"
+
 export const formatSpanishDate = (dateString: string) => {
     if (!dateString) return "—"
 
-    const date = new Date(dateString)
+    // Convert to Colombian time before formatting
+    const utcDate = new Date(dateString)
+    const colombianDate = utcToZonedTime(utcDate, COLOMBIA_TZ)
+    
     const months = [
         "Enero",
         "Febrero",
@@ -17,9 +24,9 @@ export const formatSpanishDate = (dateString: string) => {
         "Diciembre",
     ]
 
-    const day = date.getDate()
-    const month = months[date.getMonth()]
-    const year = date.getFullYear()
+    const day = colombianDate.getDate()
+    const month = months[colombianDate.getMonth()]
+    const year = colombianDate.getFullYear()
 
     return `${day} de ${month} de ${year}`
 }
