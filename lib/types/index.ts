@@ -146,7 +146,9 @@ type Installment = {
     updatedAt: string
     cashRegisterId: string | null
     
-    // Current loan status (calculated by API)
+    // Current loan status (calculated by API - ONLY set on most recent installment per loan)
+    // WARNING: This represents the CURRENT loan status, not the status when this installment was created
+    // For displaying individual installment status, use isLate/isAdvance flags instead
     currentDaysBehind?: number
     lastCoveredDate?: string | null
     isAdvance?: boolean

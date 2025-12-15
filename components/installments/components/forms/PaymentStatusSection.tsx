@@ -69,9 +69,9 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
     }
 
     // Calculate installments owed/ahead based on payment coverage
-    // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead)
-    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date)
-    // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind)
+    // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead, paid for tomorrow+)
+    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date, paid through today)
+    // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind, hasn't paid for today)
     const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
     const isAdvance = willBeAhead
     const willBeUpToDate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment === 0 : false

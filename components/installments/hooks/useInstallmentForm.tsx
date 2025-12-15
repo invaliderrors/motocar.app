@@ -625,6 +625,26 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 })
             }
 
+            // Reset form state immediately after successful submission
+            setSelectedFile(null)
+            setFilePreview(null)
+            setPaymentCoverage(null)
+            setSelectedLoan(null)
+            setPaymentBreakdown(null)
+            setLastInstallmentInfo(null)
+            setIsEditing(false)
+            setLoanNews([])
+            form.reset({
+                loanId: "",
+                amount: 0,
+                gps: 0,
+                dueDate: null,
+                paymentDate: new Date(),
+                notes: "",
+                attachmentUrl: "",
+                createdById: user?.id,
+            })
+
             onSaved?.()
             setOpen(false)
         } catch (error) {
