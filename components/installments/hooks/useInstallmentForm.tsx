@@ -20,7 +20,7 @@ interface PaymentCoverageResponse {
     loanId: string
     dailyRate: number
     loanStartDate: string
-    lastCoveredDate: string
+    lastCoveredDate: string // Last date covered before this payment
     paymentAmount: number
     daysCovered: number
     coverageStartDate: string
@@ -31,6 +31,7 @@ interface PaymentCoverageResponse {
     amountNeededToCatchUp: number
     willBeCurrentAfterPayment: boolean
     daysAheadAfterPayment: number
+    currentDaysAhead: number // Days ahead BEFORE this payment
     skippedDatesCount: number
     skippedDates: string[]
 }
