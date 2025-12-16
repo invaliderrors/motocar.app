@@ -27,7 +27,7 @@ interface PaymentCoverageResponse {
     loanId: string
     dailyRate: number
     loanStartDate: string
-    lastCoveredDate: string
+    lastCoveredDate: string // Last date covered before this payment
     paymentAmount: number
     daysCovered: number
     coverageStartDate: string
@@ -38,6 +38,7 @@ interface PaymentCoverageResponse {
     amountNeededToCatchUp: number
     willBeCurrentAfterPayment: boolean
     daysAheadAfterPayment: number
+    currentDaysAhead: number // Days ahead BEFORE this payment
     skippedDatesCount?: number
     skippedDates?: string[]
 }
@@ -89,14 +90,26 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     }
 
     // Determine payment status from coverage
+    // ADJUSTED FOR EMPLOYEE DISPLAY: Show what they owe INCLUDING today's payment
     // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead)
-    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date)
+    // daysAheadAfterPayment === 0 means coverage ends exactly today (show as owing 1 day for employee)
     // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind)
     const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
     const isAdvance = willBeAhead
-    const willBeUpToDate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment === 0 : false
-    const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
-    const isOnTime = willBeUpToDate
+    // For display, treat daysAheadAfterPayment === 0 as owing today (isLate)
+    const willBeUpToDate = false // Never show as "on time" in form, always show what's owed
+    const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment <= 0 : false
+    const isOnTime = false // Never "on time" in form view
+    
+    // Adjust days behind display to include today if at 0
+    const displayDaysBehind = paymentCoverage 
+        ? (paymentCoverage.daysAheadAfterPayment === 0 ? 1 : Math.abs(paymentCoverage.daysBehind))
+        : 0
+    
+    // Adjust amount needed to include today's payment if at 0
+    const displayAmountNeeded = paymentCoverage
+        ? (paymentCoverage.amountNeededToCatchUp || paymentCoverage.dailyRate)
+        : 0
 
     const getFileIcon = (file: File) => {
         if (file.type.startsWith("image/")) {
@@ -190,7 +203,7 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                                     {isAdvance
                                                         ? `${paymentCoverage.daysAheadAfterPayment.toFixed(1)} día(s) adelantado`
                                                         : isLate 
-                                                            ? `${paymentCoverage.daysBehind} día(s) atrasado` 
+                                                            ? `${displayDaysBehind} día(s) atrasado` 
                                                             : 'Al día'
                                                     }
                                                 </span>
@@ -207,10 +220,10 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                             </span>
                                         </div>
 
-                                        {isLate && paymentCoverage.amountNeededToCatchUp > 0 && (
+                                        {isLate && displayAmountNeeded > 0 && (
                                             <div className="text-[10px] text-red-700 dark:text-red-400 flex items-center gap-1">
                                                 <Clock className="h-3 w-3" />
-                                                <span>Al día: {formatCurrency(paymentCoverage.amountNeededToCatchUp)}</span>
+                                                <span>Al día: {formatCurrency(displayAmountNeeded)}</span>
                                                 {paymentCoverage.willBeCurrentAfterPayment && <span className="text-green-600 ml-1">✓</span>}
                                             </div>
                                         )}

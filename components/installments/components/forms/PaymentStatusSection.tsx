@@ -43,6 +43,8 @@ interface PaymentCoverageInfo {
     amountNeededToCatchUp: number
     isLate: boolean
     daysAheadAfterPayment: number
+    currentDaysAhead: number // Days ahead BEFORE this payment
+    lastCoveredDate: string // Last date covered before this payment
     coverageEndDate: string
     skippedDatesCount?: number
     skippedDates?: string[]
@@ -77,25 +79,33 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
     }
 
     // Calculate installments owed/ahead based on payment coverage
+    // ADJUSTED FOR EMPLOYEE DISPLAY: Show what they owe INCLUDING today's payment
     // daysAheadAfterPayment > 0 means coverage extends BEYOND today (truly ahead, paid for tomorrow+)
-    // daysAheadAfterPayment === 0 means coverage ends exactly today (up to date, paid through today)
+    // daysAheadAfterPayment === 0 means coverage ends exactly today (employee should see 1 day owed)
     // daysAheadAfterPayment < 0 means coverage doesn't reach today (still behind, hasn't paid for today)
     const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
     const isAdvance = willBeAhead
-    const willBeUpToDate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment === 0 : false
-    const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
+    // For display purposes, treat daysAheadAfterPayment === 0 as owing 1 day (today's payment)
+    const willBeUpToDate = false // Never show "al día" in the form, always show what's owed
+    const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment <= 0 : false
     
-    // For late payments, show installments owed
+    // For late payments, show installments owed (including today if daysAheadAfterPayment === 0)
     const installmentsOwed = isLate && paymentCoverage?.dailyRate && paymentCoverage?.amountNeededToCatchUp 
-        ? Math.ceil(paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate)
+        ? Math.ceil(paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate) || 1 // Show at least 1 if at 0
+        : isLate && paymentCoverage?.daysAheadAfterPayment === 0
+            ? 1 // If exactly at 0, they owe today (1 installment)
+            : 0
+    
+    // For advance payments, calculate days from today to lastCoveredDate (before payment)
+    // This tells the employee how many days the customer is currently in advance
+    const installmentsAhead = isAdvance && paymentCoverage?.lastCoveredDate
+        ? Math.max(0, Math.ceil((parseCalendarDate(paymentCoverage.lastCoveredDate).getTime() - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)))
         : 0
     
-    // For advance payments, show installments ahead (with fractional support)
-    const installmentsAhead = isAdvance && paymentCoverage?.daysAheadAfterPayment
-        ? paymentCoverage.daysAheadAfterPayment
+    // Amount owed includes today's payment if daysAheadAfterPayment === 0
+    const amountOwed = isLate 
+        ? (paymentCoverage?.amountNeededToCatchUp ?? 0) || (paymentCoverage?.dailyRate ?? 0) 
         : 0
-    
-    const amountOwed = isLate ? (paymentCoverage?.amountNeededToCatchUp ?? 0) : 0
 
     const getPaymentStatus = () => {
         if (!lastInstallmentInfo && !paymentCoverage) return { status: "unknown", text: "Sin información", color: "gray" }
@@ -105,11 +115,7 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
             return { status: "advance", text: `Adelantado`, color: "blue" }
         }
 
-        // Check for up to date (covers exactly through today)
-        if (willBeUpToDate) {
-            return { status: "current", text: "Al día", color: "green" }
-        }
-
+        // Always show owed installments (including today) in the form
         if (isLate && installmentsOwed > 0) {
             return { status: "overdue", text: `${installmentsOwed} cuota${installmentsOwed > 1 ? 's' : ''} atrasada${installmentsOwed > 1 ? 's' : ''}`, color: "red" }
         }
@@ -181,10 +187,10 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground">
-                                {isAdvance ? 'Cuotas adelantadas:' : 'Cuotas atrasadas:'}
+                                {isAdvance ? 'Días adelantados:' : 'Cuotas atrasadas:'}
                             </p>
                             <p className={`text-lg font-bold ${isAdvance ? 'text-blue-600' : installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {isAdvance ? installmentsAhead.toFixed(1) : installmentsOwed}
+                                {isAdvance ? Math.round(installmentsAhead) : installmentsOwed}
                             </p>
                         </div>
                         <div className="text-right">
@@ -193,7 +199,7 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                             </p>
                             <p className={`text-sm font-bold ${isAdvance ? 'text-blue-600' : amountOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
                                 {isAdvance && paymentCoverage 
-                                    ? format(parseCalendarDate(paymentCoverage.coverageEndDate), "dd/MM/yyyy", { locale: es })
+                                    ? format(parseCalendarDate(paymentCoverage.lastCoveredDate), "dd/MM/yyyy", { locale: es })
                                     : formatCurrency(amountOwed)
                                 }
                             </p>

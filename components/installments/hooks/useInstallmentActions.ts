@@ -79,6 +79,7 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             paidInstallments: installment.loan.paidInstallments, // Payment status
             remainingInstallments: installment.loan.remainingInstallments, // Payment status
             totalInstallments: installment.loan.installments, // Payment status
+            paymentFrequency: installment.loan.paymentFrequency, // Payment frequency for calculating installments owed
             lastPaymentDate: lastPaymentDate, // Previous payment date (latePaymentDate if late, advancePaymentDate if advance, otherwise paymentDate)
             // Pre-calculated days for receipt to use directly
             daysAhead: daysAhead,
@@ -246,6 +247,7 @@ export function useInstallmentActions(refreshInstallments: () => void) {
                 paidInstallments: installment.loan.paidInstallments, // Payment status
                 remainingInstallments: installment.loan.remainingInstallments, // Payment status
                 totalInstallments: installment.loan.installments, // Payment status
+                paymentFrequency: installment.loan.paymentFrequency, // Payment frequency for calculating installments owed
                 lastPaymentDate: lastPaymentDate, // Previous payment date
                 // Pre-calculated days for receipt to use directly
                 daysAhead: daysAhead,
