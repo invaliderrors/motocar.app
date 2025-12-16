@@ -542,7 +542,7 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                         {!loan.archived && contractPermissions.canEdit && (
                             <>
                                 <DropdownMenuSeparator />
-                                <LoanForm loanId={loan.id} loanData={loan}>
+                                <LoanForm loanId={loan.id} loanData={loan} onSaved={onStatusUpdated}>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                         <Edit className="mr-2 h-4 w-4" />
                                         Editar contrato
