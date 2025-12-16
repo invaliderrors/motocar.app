@@ -39,35 +39,24 @@ export function useInstallmentActions(refreshInstallments: () => void) {
         const isAdvance = !installment.isLate && !!installment.advancePaymentDate
 
         // Calculate days ahead/behind for the receipt
-        // Use currentDaysBehind from API if available (already has fractional precision)
-        // Otherwise fall back to date calculation
+        // For historical payments, always calculate from the payment's specific dates
+        // Don't use currentDaysBehind as it reflects the CURRENT loan status, not this payment's status
         let daysAhead = 0
         let daysBehind = 0
         
-        if (typeof (installment as any).currentDaysBehind === 'number') {
-            // currentDaysBehind: negative = ahead, positive = behind
-            const currentDaysBehind = (installment as any).currentDaysBehind
-            if (currentDaysBehind < 0) {
-                daysAhead = Math.abs(currentDaysBehind) // Convert to positive for display
-            } else {
-                daysBehind = currentDaysBehind
-            }
-        } else {
-            // Fallback to date calculation if currentDaysBehind not available
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            
-            if (isAdvance && installment.advancePaymentDate) {
-                const advanceDate = new Date(installment.advancePaymentDate)
-                advanceDate.setHours(0, 0, 0, 0)
-                const diffTime = advanceDate.getTime() - today.getTime()
-                daysAhead = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
-            } else if (installment.isLate && installment.latePaymentDate) {
-                const lateDate = new Date(installment.latePaymentDate)
-                lateDate.setHours(0, 0, 0, 0)
-                const diffTime = today.getTime() - lateDate.getTime()
-                daysBehind = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
-            }
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        if (isAdvance && installment.advancePaymentDate) {
+            const advanceDate = new Date(installment.advancePaymentDate)
+            advanceDate.setHours(0, 0, 0, 0)
+            const diffTime = advanceDate.getTime() - today.getTime()
+            daysAhead = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
+        } else if (installment.isLate && installment.latePaymentDate) {
+            const lateDate = new Date(installment.latePaymentDate)
+            lateDate.setHours(0, 0, 0, 0)
+            const diffTime = today.getTime() - lateDate.getTime()
+            daysBehind = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
         }
 
         const payload = {
@@ -215,35 +204,24 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             const isAdvance = !installment.isLate && !!installment.advancePaymentDate
 
             // Calculate days ahead/behind for the receipt (same as table calculation)
+            // For historical payments, always calculate from the payment's specific dates
+            // Don't use currentDaysBehind as it reflects the CURRENT loan status, not this payment's status
             let daysAhead = 0
             let daysBehind = 0
             
-            // Use currentDaysBehind from API if available (already has fractional precision)
-            // Otherwise fall back to date calculation
-            if (typeof (installment as any).currentDaysBehind === 'number') {
-                // currentDaysBehind: negative = ahead, positive = behind
-                const currentDaysBehind = (installment as any).currentDaysBehind
-                if (currentDaysBehind < 0) {
-                    daysAhead = Math.abs(currentDaysBehind) // Convert to positive for display
-                } else {
-                    daysBehind = currentDaysBehind
-                }
-            } else {
-                // Fallback to date calculation if currentDaysBehind not available
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
-                
-                if (isAdvance && installment.advancePaymentDate) {
-                    const advanceDate = new Date(installment.advancePaymentDate)
-                    advanceDate.setHours(0, 0, 0, 0)
-                    const diffTime = advanceDate.getTime() - today.getTime()
-                    daysAhead = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
-                } else if (installment.isLate && installment.latePaymentDate) {
-                    const lateDate = new Date(installment.latePaymentDate)
-                    lateDate.setHours(0, 0, 0, 0)
-                    const diffTime = today.getTime() - lateDate.getTime()
-                    daysBehind = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
-                }
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            
+            if (isAdvance && installment.advancePaymentDate) {
+                const advanceDate = new Date(installment.advancePaymentDate)
+                advanceDate.setHours(0, 0, 0, 0)
+                const diffTime = advanceDate.getTime() - today.getTime()
+                daysAhead = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
+            } else if (installment.isLate && installment.latePaymentDate) {
+                const lateDate = new Date(installment.latePaymentDate)
+                lateDate.setHours(0, 0, 0, 0)
+                const diffTime = today.getTime() - lateDate.getTime()
+                daysBehind = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
             }
 
             // Prepare the receipt data
