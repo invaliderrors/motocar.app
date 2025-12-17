@@ -152,6 +152,11 @@ type Installment = {
     currentDaysBehind?: number
     lastCoveredDate?: string | null
     isAdvance?: boolean
+    isLatestInstallment?: boolean
+    
+    // Exact decimal precision fields for late payments (ONLY on most recent installment)
+    exactInstallmentsOwed?: number  // e.g., 1.129032258 installments
+    remainingAmountOwed?: number    // e.g., $35,000
 
     loan: Loan
 

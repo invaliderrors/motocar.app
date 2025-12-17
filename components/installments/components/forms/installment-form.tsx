@@ -118,10 +118,10 @@ export function InstallmentForm({
                   {selectedLoan && paymentBreakdown ? (
                     <>
                       <PaymentSummaryCard
-                        loanAmount={selectedLoan.financedAmount}
-                        paidAmount={selectedLoan.totalCapitalPaid}
+                        loanAmount={selectedLoan.totalAmount}
+                        paidAmount={selectedLoan.totalPaid}
                         remainingAmount={selectedLoan.debtRemaining}
-                        progress={(selectedLoan.totalCapitalPaid / selectedLoan.financedAmount) * 100}
+                        progress={Math.min(100, (selectedLoan.totalPaid / selectedLoan.totalAmount) * 100)}
                       />
                       <LoanInformationCard loan={selectedLoan} />
                       <PaymentBreakdownCard breakdown={paymentBreakdown} gps={gps} />

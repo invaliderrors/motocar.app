@@ -135,7 +135,18 @@ export function InstallmentRow({
                 )}
             </TableCell>
             <TableCell className="hidden xl:table-cell text-center">
-                {days !== 0 ? (
+                {/* Show current status for most recent installment if they owe money */}
+                {installment.isLatestInstallment && installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0 ? (
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="flex items-center justify-center font-bold text-red-400">
+                            <Clock className="mr-1 h-4 w-4" />
+                            +{installment.exactInstallmentsOwed.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-red-400/70 mt-1">
+                            {formatCurrency(installment.remainingAmountOwed || 0)}
+                        </div>
+                    </div>
+                ) : days !== 0 ? (
                     <div className={`flex items-center justify-center font-bold ${
                         days > 0 ? 'text-red-400' : 'text-blue-400'
                     }`}>

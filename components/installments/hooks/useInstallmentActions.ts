@@ -85,6 +85,9 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             // Pre-calculated days for receipt to use directly
             daysAhead: daysAhead,
             daysBehind: daysBehind,
+            // Exact decimal precision values for accurate receipt display
+            exactInstallmentsOwed: installment.exactInstallmentsOwed, // e.g., 0.67 installments
+            remainingAmountOwed: installment.remainingAmountOwed, // e.g., $21,000
         }
 
 
