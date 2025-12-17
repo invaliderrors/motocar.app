@@ -89,9 +89,9 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
     const willBeUpToDate = false // Never show "al día" in the form, always show what's owed
     const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment <= 0 : false
     
-    // For late payments, show installments owed (including today if daysAheadAfterPayment === 0)
+    // For late payments, show EXACT installments owed (with decimal precision)
     const installmentsOwed = isLate && paymentCoverage?.dailyRate && paymentCoverage?.amountNeededToCatchUp 
-        ? Math.ceil(paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate) || 1 // Show at least 1 if at 0
+        ? Number((paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate).toFixed(2)) || 1 // Show exact decimal, e.g., 1.80
         : isLate && paymentCoverage?.daysAheadAfterPayment === 0
             ? 1 // If exactly at 0, they owe today (1 installment)
             : 0
@@ -190,7 +190,7 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                                 {isAdvance ? 'Días adelantados:' : 'Cuotas atrasadas:'}
                             </p>
                             <p className={`text-lg font-bold ${isAdvance ? 'text-blue-600' : installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {isAdvance ? Math.round(installmentsAhead) : installmentsOwed}
+                                {isAdvance ? Math.round(installmentsAhead) : Number(installmentsOwed.toFixed(2))}
                             </p>
                         </div>
                         <div className="text-right">

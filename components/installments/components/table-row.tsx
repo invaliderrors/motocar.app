@@ -140,7 +140,7 @@ export function InstallmentRow({
                     <div className="flex flex-col items-center justify-center">
                         <div className="flex items-center justify-center font-bold text-red-400">
                             <Clock className="mr-1 h-4 w-4" />
-                            +{installment.exactInstallmentsOwed.toFixed(2)}
+                            +{Number(installment.exactInstallmentsOwed.toFixed(2))}
                         </div>
                         <div className="text-xs text-red-400/70 mt-1">
                             {formatCurrency(installment.remainingAmountOwed || 0)}

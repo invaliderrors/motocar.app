@@ -103,7 +103,7 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     
     // Adjust days behind display to include today if at 0
     const displayDaysBehind = paymentCoverage 
-        ? (paymentCoverage.daysAheadAfterPayment === 0 ? 1 : Math.abs(paymentCoverage.daysBehind))
+        ? (paymentCoverage.daysAheadAfterPayment === 0 ? 1 : Number(Math.abs(paymentCoverage.daysBehind).toFixed(2)))
         : 0
     
     // Adjust amount needed to include today's payment if at 0
