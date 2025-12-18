@@ -50,6 +50,7 @@ import { NavSecondary } from "./secondary"
 import { NavUser } from "./user"
 import { hasAccess } from "@/lib/services/route-access"
 import { StoreSwitcher, StoreBadge } from "@/components/common/StoreSwitcher"
+import { ThemeToggle } from "@/components/common/theme-toggle"
 
 export function AppSidebar({ className, ...props }: React.ComponentProps<typeof Sidebar>) {
     const { user, logout } = useAuth()
@@ -271,7 +272,11 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
                 {/* Background decorative elements */}
                 <div className="absolute inset-0 bg-gradient-to-t from-muted/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-                <div className="relative">
+                <div className="relative space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-xs text-muted-foreground font-medium">Tema</span>
+                        <ThemeToggle />
+                    </div>
                     <NavUser user={user} onLogout={handleLogout} />
                 </div>
             </SidebarFooter>

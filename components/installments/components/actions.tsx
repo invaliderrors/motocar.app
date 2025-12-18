@@ -39,7 +39,7 @@ export function ActionsMenu({
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-blue-300 hover:text-white hover:bg-dark-blue-800/70"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
                     disabled={!hasAnyPermission}
                 >
                     <MoreVertical className="h-4 w-4" />
@@ -48,16 +48,16 @@ export function ActionsMenu({
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align="end"
-                className="bg-dark-blue-800/80 backdrop-blur-md border-dark-blue-700 text-white z-50"
+                className="backdrop-blur-md z-50"
                 sideOffset={5}
             >
                 {/* View details - available if user has any permission */}
                 {hasAnyPermission && onViewDetails && (
                     <DropdownMenuItem
                         onClick={() => onViewDetails(installment)}
-                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer"
                     >
-                        <Eye className="h-4 w-4 text-blue-400" />
+                        <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         Ver detalles
                     </DropdownMenuItem>
                 )}
@@ -66,9 +66,9 @@ export function ActionsMenu({
                 {installment.attachmentUrl && onViewAttachment && hasAnyPermission && (
                     <DropdownMenuItem
                         onClick={() => onViewAttachment(installment)}
-                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer"
                     >
-                        <Eye className="h-4 w-4 text-purple-400" />
+                        <Eye className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                         Ver comprobante
                     </DropdownMenuItem>
                 )}
@@ -77,9 +77,9 @@ export function ActionsMenu({
                 {installmentPermissions.canCreate && (
                     <DropdownMenuItem
                         onClick={() => onSendWhatsapp(installment)}
-                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer"
                     >
-                        <WhatsAppIcon className="h-4 w-4 text-green-400" />
+                        <WhatsAppIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
                         Enviar por WhatsApp
                     </DropdownMenuItem>
                 )}
@@ -88,9 +88,9 @@ export function ActionsMenu({
                 {installmentPermissions.canCreate && (
                     <DropdownMenuItem
                         onClick={() => onPrint(installment)}
-                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer"
                     >
-                        <Printer className="h-4 w-4 text-blue-400" />
+                        <Printer className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         Imprimir recibo
                     </DropdownMenuItem>
                 )}
@@ -99,9 +99,9 @@ export function ActionsMenu({
                 {installmentPermissions.canEdit && (
                     <DropdownMenuItem
                         onClick={() => onEdit(installment)}
-                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer"
                     >
-                        <Edit className="h-4 w-4 text-amber-400" />
+                        <Edit className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                         Editar cuota
                     </DropdownMenuItem>
                 )}
@@ -110,7 +110,7 @@ export function ActionsMenu({
                 {installmentPermissions.canDelete && (
                     <DropdownMenuItem
                         onClick={() => onDelete(installment)}
-                        className="flex items-center gap-2 focus:bg-dark-blue-700/90 cursor-pointer text-red-400"
+                        className="flex items-center gap-2 cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
                     >
                         <Trash2 className="h-4 w-4" />
                         Eliminar cuota

@@ -596,22 +596,19 @@ export default function ReportsDashboard() {
           <div className="relative z-10 bg-card border rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-300">
             <div className="flex flex-col items-center gap-6">
               {/* Header */}
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
+              <div className="flex flex-col items-center gap-4">
                 <h3 className="text-2xl font-semibold text-foreground">
                   Generando Reporte
                 </h3>
-              </div>
-
-              {/* Spinner Circle */}
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-muted flex items-center justify-center">
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                
+                {/* Spinner Circle */}
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full border-4 border-muted flex items-center justify-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  </div>
+                  {/* Pulsing ring effect */}
+                  <div className="absolute inset-0 rounded-full border-4 border-primary/30 animate-ping" />
                 </div>
-                {/* Pulsing ring effect */}
-                <div className="absolute inset-0 rounded-full border-4 border-primary/30 animate-ping" />
               </div>
 
               {/* Messages */}

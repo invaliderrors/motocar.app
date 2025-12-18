@@ -47,9 +47,9 @@ export default function RootLayout({
   }, [isNavigatingFromLogin, pathname, setPageLoaded])
 
   return (
-    <html lang="es" suppressHydrationWarning className="dark">
-      <body className={`${poppins.className} bg-dark-blue-950 dot-pattern text-gray-100`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+    <html lang="es" suppressHydrationWarning>
+      <body className={poppins.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
             <StoreProvider>
               <PermissionsProvider>
