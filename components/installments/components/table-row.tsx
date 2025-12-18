@@ -114,50 +114,85 @@ export function InstallmentRow({
                 </div>
             </TableCell>
             <TableCell className="hidden lg:table-cell text-foreground">
-                {/* Show the last covered date: advancePaymentDate is the coverage end date */}
-                {installment.advancePaymentDate ? (
-                    <div className={`flex items-center font-medium ${
-                        days < 0 ? 'text-blue-400' : days > 0 ? 'text-red-400' : 'text-green-400'
-                    }`}>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {formatSpanishDate(installment.advancePaymentDate)}
-                    </div>
-                ) : installment.isLate && installment.latePaymentDate ? (
-                    <div className="flex items-center text-red-400 font-medium">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {formatSpanishDate(installment.latePaymentDate)}
-                    </div>
-                ) : (
-                    <div className="flex items-center text-muted-foreground">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {formatSpanishDate(installment.paymentDate)}
-                    </div>
-                )}
+                {(() => {
+                    // Determine which date to display first
+                    const displayDate = installment.advancePaymentDate 
+                        ? installment.advancePaymentDate
+                        : (installment.isLate && installment.latePaymentDate)
+                            ? installment.latePaymentDate
+                            : installment.paymentDate;
+                    
+                    // Determine the color based on payment status
+                    let dateColor = 'text-green-400'; // Default: on time and paid up
+                    
+                    // PRIORITY 1: For latest installment, check debt status first
+                    if (installment.isLatestInstallment) {
+                        if (installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0) {
+                            dateColor = 'text-red-400'; // Still has debt
+                        } else {
+                            dateColor = 'text-green-400'; // Paid up - show green even if was late
+                        }
+                    }
+                    // PRIORITY 2: Historical installments keep their original status
+                    else if (installment.isLate) {
+                        dateColor = 'text-red-400';
+                    } 
+                    // If payment is in advance, show blue
+                    else if (installment.isAdvance) {
+                        dateColor = 'text-blue-400';
+                    }
+                    
+                    return (
+                        <div className={`flex items-center font-medium ${dateColor}`}>
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {formatSpanishDate(displayDate)}
+                        </div>
+                    );
+                })()}
             </TableCell>
             <TableCell className="hidden xl:table-cell text-center">
-                {/* Show current status for most recent installment if they owe money */}
-                {installment.isLatestInstallment && installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0 ? (
-                    <div className="flex flex-col items-center justify-center">
-                        <div className="flex items-center justify-center font-bold text-red-400">
-                            <Clock className="mr-1 h-4 w-4" />
-                            +{Number(installment.exactInstallmentsOwed.toFixed(2))}
+                {/* Each installment shows its OWN days status, not affected by future payments */}
+                {/* Only the latest installment shows current debt status */}
+                {installment.isLatestInstallment ? (
+                    // Latest installment: show current debt if any, otherwise show its own days
+                    installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0 ? (
+                        <div className="flex flex-col items-center justify-center">
+                            <div className="flex items-center justify-center font-bold text-red-400">
+                                <Clock className="mr-1 h-4 w-4" />
+                                +{Number(installment.exactInstallmentsOwed.toFixed(2))}
+                            </div>
+                            <div className="text-xs text-red-400/70 mt-1">
+                                {formatCurrency(installment.remainingAmountOwed || 0)}
+                            </div>
                         </div>
-                        <div className="text-xs text-red-400/70 mt-1">
-                            {formatCurrency(installment.remainingAmountOwed || 0)}
+                    ) : days !== 0 ? (
+                        <div className={`flex items-center justify-center font-bold ${
+                            days > 0 ? 'text-red-400' : 'text-blue-400'
+                        }`}>
+                            <Clock className="mr-2 h-4 w-4" />
+                            {days > 0 ? `+${days.toFixed(1)}` : days.toFixed(1)}
                         </div>
-                    </div>
-                ) : days !== 0 ? (
-                    <div className={`flex items-center justify-center font-bold ${
-                        days > 0 ? 'text-red-400' : 'text-blue-400'
-                    }`}>
-                        <Clock className="mr-2 h-4 w-4" />
-                        {days > 0 ? `+${days.toFixed(1)}` : days.toFixed(1)}
-                    </div>
+                    ) : (
+                        <div className="flex items-center justify-center text-green-400 font-bold">
+                            <Clock className="mr-2 h-4 w-4" />
+                            0
+                        </div>
+                    )
                 ) : (
-                    <div className="flex items-center justify-center text-muted-foreground">
-                        <Clock className="mr-2 h-4 w-4" />
-                        0
-                    </div>
+                    // Historical installment: keep showing its original days status
+                    days !== 0 ? (
+                        <div className={`flex items-center justify-center font-bold ${
+                            days > 0 ? 'text-red-400' : 'text-blue-400'
+                        }`}>
+                            <Clock className="mr-2 h-4 w-4" />
+                            {days > 0 ? `+${days.toFixed(1)}` : days.toFixed(1)}
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center text-muted-foreground">
+                            <Clock className="mr-2 h-4 w-4" />
+                            0
+                        </div>
+                    )
                 )}
             </TableCell>
             <TableCell className="text-foreground">
@@ -169,23 +204,37 @@ export function InstallmentRow({
             <TableCell className="text-center">
                 {(() => {
                     // Display the status based on the installment's own flags (as it was when created)
-                    // isAdvance = payment covered days ahead (blue badge)
-                    // isLate = payment was made late (red badge)  
-                    // neither = payment was on time (green badge)
+                    // Each installment is independent and keeps its original status
+                    // EXCEPT: Latest installment shows current debt status (overrides historical late flag)
                     
-                    if (installment.isAdvance && installment.advancePaymentDate) {
-                        // Paid ahead / advance
-                        return (
-                            <Badge
-                                variant="default"
-                                className="bg-blue-500/80 hover:bg-blue-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
-                            >
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                <span>Adelantada</span>
-                            </Badge>
-                        )
-                    } else if (installment.isLate && installment.latePaymentDate) {
-                        // Behind / late
+                    // PRIORITY 1: For latest installment, check if debt is cleared
+                    if (installment.isLatestInstallment) {
+                        if (installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0) {
+                            return (
+                                <Badge
+                                    variant="destructive"
+                                    className="bg-red-500/80 hover:bg-red-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                                >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    <span>Atrasada</span>
+                                </Badge>
+                            )
+                        } else {
+                            // Debt is cleared - show "Al día" even if payment was late
+                            return (
+                                <Badge
+                                    variant="default"
+                                    className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                                >
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    <span>Al día</span>
+                                </Badge>
+                            )
+                        }
+                    }
+                    // PRIORITY 2: Historical installments keep their original status
+                    // If this installment was marked as late, keep it as "Atrasada"
+                    else if (installment.isLate) {
                         return (
                             <Badge
                                 variant="destructive"
@@ -195,8 +244,21 @@ export function InstallmentRow({
                                 <span>Atrasada</span>
                             </Badge>
                         )
-                    } else {
-                        // On time
+                    } 
+                    // If this installment was marked as advance, keep it as "Adelantada"
+                    else if (installment.isAdvance) {
+                        return (
+                            <Badge
+                                variant="default"
+                                className="bg-blue-500/80 hover:bg-blue-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                <span>Adelantada</span>
+                            </Badge>
+                        )
+                    }
+                    // Historical installment that was on time: keep as "Al día"
+                    else {
                         return (
                             <Badge
                                 variant="default"
