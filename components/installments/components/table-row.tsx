@@ -151,49 +151,71 @@ export function InstallmentRow({
                 })()}
             </TableCell>
             <TableCell className="hidden xl:table-cell text-center">
-                {/* Each installment shows its OWN days status, not affected by future payments */}
-                {/* Only the latest installment shows current debt status */}
-                {installment.isLatestInstallment ? (
-                    // Latest installment: show current debt if any, otherwise show its own days
-                    installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0 ? (
-                        <div className="flex flex-col items-center justify-center">
-                            <div className="flex items-center justify-center font-bold text-red-400">
-                                <Clock className="mr-1 h-4 w-4" />
-                                +{Number(installment.exactInstallmentsOwed.toFixed(2))}
+                {/* Each installment shows its OWN stored debt snapshot - IMMUTABLE */}
+                {(() => {
+                    // Use stored snapshot from database (set at creation time)
+                    const storedDebt = installment.exactInstallmentsOwed || 0;
+                    const storedAmount = installment.remainingAmountOwed || 0;
+                    
+                    // Latest installment: show current debt (updated dynamically)
+                    if (installment.isLatestInstallment) {
+                        if (storedDebt > 0) {
+                            return (
+                                <div className="flex flex-col items-center justify-center">
+                                    <div className="flex items-center justify-center font-bold text-red-400">
+                                        <Clock className="mr-1 h-4 w-4" />
+                                        +{Number(storedDebt.toFixed(2))}
+                                    </div>
+                                    <div className="text-xs text-red-400/70 mt-1">
+                                        {formatCurrency(storedAmount)}
+                                    </div>
+                                </div>
+                            );
+                        } else {
+                            // No debt - show 0 in green
+                            return (
+                                <div className="flex items-center justify-center text-green-400 font-bold">
+                                    <Clock className="mr-2 h-4 w-4" />
+                                    0
+                                </div>
+                            );
+                        }
+                    }
+                    
+                    // Historical installment: show stored snapshot (immutable)
+                    if (storedDebt > 0) {
+                        return (
+                            <div className="flex flex-col items-center justify-center">
+                                <div className="flex items-center justify-center font-bold text-red-400">
+                                    <Clock className="mr-1 h-4 w-4" />
+                                    +{Number(storedDebt.toFixed(2))}
+                                </div>
+                                <div className="text-xs text-red-400/70 mt-1">
+                                    {formatCurrency(storedAmount)}
+                                </div>
                             </div>
-                            <div className="text-xs text-red-400/70 mt-1">
-                                {formatCurrency(installment.remainingAmountOwed || 0)}
+                        );
+                    }
+                    
+                    // Historical with no debt (was paid on time)
+                    // Check if it was advance payment
+                    if (days < 0) {
+                        return (
+                            <div className="flex items-center justify-center font-bold text-blue-400">
+                                <Clock className="mr-2 h-4 w-4" />
+                                {days.toFixed(1)}
                             </div>
-                        </div>
-                    ) : days !== 0 ? (
-                        <div className={`flex items-center justify-center font-bold ${
-                            days > 0 ? 'text-red-400' : 'text-blue-400'
-                        }`}>
-                            <Clock className="mr-2 h-4 w-4" />
-                            {days > 0 ? `+${days.toFixed(1)}` : days.toFixed(1)}
-                        </div>
-                    ) : (
+                        );
+                    }
+                    
+                    // Historical on-time payment
+                    return (
                         <div className="flex items-center justify-center text-green-400 font-bold">
                             <Clock className="mr-2 h-4 w-4" />
                             0
                         </div>
-                    )
-                ) : (
-                    // Historical installment: keep showing its original days status
-                    days !== 0 ? (
-                        <div className={`flex items-center justify-center font-bold ${
-                            days > 0 ? 'text-red-400' : 'text-blue-400'
-                        }`}>
-                            <Clock className="mr-2 h-4 w-4" />
-                            {days > 0 ? `+${days.toFixed(1)}` : days.toFixed(1)}
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center text-muted-foreground">
-                            <Clock className="mr-2 h-4 w-4" />
-                            0
-                        </div>
-                    )
-                )}
+                    );
+                })()}
             </TableCell>
             <TableCell className="text-foreground">
                 <div className="flex items-center whitespace-nowrap">
