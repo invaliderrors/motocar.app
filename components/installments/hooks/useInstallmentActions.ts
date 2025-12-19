@@ -35,29 +35,31 @@ export function useInstallmentActions(refreshInstallments: () => void) {
         // Use latePaymentDate if exists (original due date), advancePaymentDate for advance, otherwise paymentDate
         const lastPaymentDate = installment.latePaymentDate || installment.advancePaymentDate || installment.paymentDate
         
-        // Determine if it's an advance payment (has advancePaymentDate and not late)
-        const isAdvance = !installment.isLate && !!installment.advancePaymentDate
-
         // Calculate days ahead/behind for the receipt
         // For historical payments, always calculate from the payment's specific dates
         // Don't use currentDaysBehind as it reflects the CURRENT loan status, not this payment's status
         let daysAhead = 0
         let daysBehind = 0
         
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
+        // Use the actual payment date for historical accuracy, not today's date
+        const paymentDate = new Date(installment.paymentDate)
+        paymentDate.setHours(0, 0, 0, 0)
         
-        if (isAdvance && installment.advancePaymentDate) {
+        // Calculate days ahead/behind first to determine payment type
+        if (!installment.isLate && installment.advancePaymentDate) {
             const advanceDate = new Date(installment.advancePaymentDate)
             advanceDate.setHours(0, 0, 0, 0)
-            const diffTime = advanceDate.getTime() - today.getTime()
+            const diffTime = advanceDate.getTime() - paymentDate.getTime()
             daysAhead = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
         } else if (installment.isLate && installment.latePaymentDate) {
             const lateDate = new Date(installment.latePaymentDate)
             lateDate.setHours(0, 0, 0, 0)
-            const diffTime = today.getTime() - lateDate.getTime()
+            const diffTime = paymentDate.getTime() - lateDate.getTime()
             daysBehind = diffTime / (1000 * 60 * 60 * 24) // Keep fractional days
         }
+        
+        // Only consider it an advance if truly ahead (daysAhead > 0)
+        const isAdvance = !installment.isLate && !!installment.advancePaymentDate && daysAhead > 0
 
         const payload = {
             name: installment.loan.user.name.trim(),
