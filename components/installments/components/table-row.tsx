@@ -47,9 +47,21 @@ export function InstallmentRow({
     }
 
     // Calculate days difference for late or advance payments
-    // Each installment should display its OWN status (isLate, isAdvance) as it was when created
-    // NOT the currentDaysBehind which represents the CURRENT loan status (only valid for most recent installment)
+    // PRIORITY: Use stored backend data (daysBehind, daysAhead) if available
+    // BACKFILL: Calculate from dates if backend data doesn't exist yet
     const calculateDays = () => {
+        // Use stored backend data if available (new installments)
+        if (installment.daysBehind !== undefined && installment.daysBehind !== null) {
+            return installment.daysBehind; // Positive for behind
+        }
+        if (installment.daysAhead !== undefined && installment.daysAhead !== null) {
+            return -installment.daysAhead; // Negative for ahead (for compatibility with old logic)
+        }
+        if (installment.isUpToDate) {
+            return 0; // Exactly up to date
+        }
+        
+        // BACKFILL: Calculate from dates for old installments
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         
@@ -122,22 +134,29 @@ export function InstallmentRow({
                             ? installment.latePaymentDate
                             : installment.paymentDate;
                     
-                    // Determine the color based on payment status
-                    let dateColor = 'text-green-400'; // Default: on time and paid up
+                    // Determine the color based on stored payment status
+                    let dateColor = 'text-green-400'; // Default: up to date
                     
-                    // PRIORITY 1: For latest installment, check debt status first
-                    if (installment.isLatestInstallment) {
+                    // PRIORITY 1: Use stored backend status if available
+                    if (installment.isUpToDate) {
+                        dateColor = 'text-green-400'; // Exactly up to date
+                    } else if (installment.daysAhead !== undefined && installment.daysAhead !== null && installment.daysAhead > 0) {
+                        dateColor = 'text-blue-400'; // Ahead
+                    } else if (installment.daysBehind !== undefined && installment.daysBehind !== null && installment.daysBehind > 0) {
+                        dateColor = 'text-red-400'; // Behind
+                    }
+                    // BACKFILL: For latest installment without stored status, check debt
+                    else if (installment.isLatestInstallment) {
                         if (installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0) {
                             dateColor = 'text-red-400'; // Still has debt
                         } else {
-                            dateColor = 'text-green-400'; // Paid up - show green even if was late
+                            dateColor = 'text-green-400'; // Paid up
                         }
                     }
-                    // PRIORITY 2: Historical installments keep their original status
+                    // BACKFILL: Historical installments use original status
                     else if (installment.isLate) {
                         dateColor = 'text-red-400';
                     } 
-                    // If payment is in advance, show blue
                     else if (installment.isAdvance) {
                         dateColor = 'text-blue-400';
                     }
@@ -151,9 +170,48 @@ export function InstallmentRow({
                 })()}
             </TableCell>
             <TableCell className="hidden xl:table-cell text-center">
-                {/* Each installment shows its OWN stored debt snapshot - IMMUTABLE */}
+                {/* Display payment status using stored backend data with backfill */}
                 {(() => {
-                    // Use stored snapshot from database (set at creation time)
+                    // PRIORITY 1: Use stored backend status if available (new installments)
+                    if (installment.isUpToDate) {
+                        // Exactly up to date - no debt
+                        return (
+                            <div className="flex items-center justify-center text-green-400 font-bold">
+                                <Clock className="mr-2 h-4 w-4" />
+                                0
+                            </div>
+                        );
+                    }
+                    
+                    if (installment.daysAhead !== undefined && installment.daysAhead !== null && installment.daysAhead > 0) {
+                        // Ahead - show negative (blue)
+                        return (
+                            <div className="flex items-center justify-center font-bold text-blue-400">
+                                <Clock className="mr-2 h-4 w-4" />
+                                {(-installment.daysAhead).toFixed(1)}
+                            </div>
+                        );
+                    }
+                    
+                    if (installment.daysBehind !== undefined && installment.daysBehind !== null && installment.daysBehind > 0) {
+                        // Behind - show positive (red) with amount
+                        const storedAmount = installment.remainingAmountOwed || 0;
+                        return (
+                            <div className="flex flex-col items-center justify-center">
+                                <div className="flex items-center justify-center font-bold text-red-400">
+                                    <Clock className="mr-1 h-4 w-4" />
+                                    +{Number(installment.daysBehind.toFixed(2))}
+                                </div>
+                                {storedAmount > 0 && (
+                                    <div className="text-xs text-red-400/70 mt-1">
+                                        {formatCurrency(storedAmount)}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    }
+                    
+                    // BACKFILL: Use stored snapshot from database (old logic)
                     const storedDebt = installment.exactInstallmentsOwed || 0;
                     const storedAmount = installment.remainingAmountOwed || 0;
                     
@@ -197,8 +255,7 @@ export function InstallmentRow({
                         );
                     }
                     
-                    // Historical with no debt (was paid on time)
-                    // Check if it was advance payment
+                    // Historical with no debt - check if advance
                     if (days < 0) {
                         return (
                             <div className="flex items-center justify-center font-bold text-blue-400">
@@ -225,11 +282,44 @@ export function InstallmentRow({
             </TableCell>
             <TableCell className="text-center">
                 {(() => {
-                    // Display the status based on the installment's own flags (as it was when created)
-                    // Each installment is independent and keeps its original status
-                    // EXCEPT: Latest installment shows current debt status (overrides historical late flag)
+                    // PRIORITY 1: Use stored backend status if available (new installments)
+                    if (installment.isUpToDate) {
+                        return (
+                            <Badge
+                                variant="default"
+                                className="bg-green-500/80 hover:bg-green-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                <span>Al día</span>
+                            </Badge>
+                        )
+                    }
                     
-                    // PRIORITY 1: For latest installment, check if debt is cleared
+                    if (installment.daysAhead !== undefined && installment.daysAhead !== null && installment.daysAhead > 0) {
+                        return (
+                            <Badge
+                                variant="default"
+                                className="bg-blue-500/80 hover:bg-blue-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                <span>Adelantada</span>
+                            </Badge>
+                        )
+                    }
+                    
+                    if (installment.daysBehind !== undefined && installment.daysBehind !== null && installment.daysBehind > 0) {
+                        return (
+                            <Badge
+                                variant="destructive"
+                                className="bg-red-500/80 hover:bg-red-500/70 inline-flex items-center justify-center gap-1 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                <span>Atrasada</span>
+                            </Badge>
+                        )
+                    }
+                    
+                    // BACKFILL: For latest installment without stored status, check debt
                     if (installment.isLatestInstallment) {
                         if (installment.exactInstallmentsOwed !== undefined && installment.exactInstallmentsOwed > 0) {
                             return (
@@ -254,7 +344,7 @@ export function InstallmentRow({
                             )
                         }
                     }
-                    // PRIORITY 2: Historical installments keep their original status
+                    // BACKFILL: Historical installments keep their original status
                     // If this installment was marked as late, keep it as "Atrasada"
                     else if (installment.isLate) {
                         return (

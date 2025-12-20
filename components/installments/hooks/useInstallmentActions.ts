@@ -77,6 +77,7 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             paymentDate: installment.paymentDate, // Actual payment date
             notes: installment.notes,
             receiptNumber: installment.id,
+            installmentId: installment.id, // Pass installment ID for database lookup
             storeId: currentStore?.id, // Add storeId
             paidInstallments: installment.loan.paidInstallments, // Payment status
             remainingInstallments: installment.loan.remainingInstallments, // Payment status
@@ -84,10 +85,10 @@ export function useInstallmentActions(refreshInstallments: () => void) {
             paymentFrequency: installment.loan.paymentFrequency, // Payment frequency for calculating installments owed
             installmentPaymentAmmount: installment.loan.installmentPaymentAmmount, // Contract's installment amount for debt calculation
             lastPaymentDate: lastPaymentDate, // Previous payment date (latePaymentDate if late, advancePaymentDate if advance, otherwise paymentDate)
-            // Pre-calculated days for receipt to use directly
+            // Pre-calculated days for receipt to use directly (LEGACY - backend will use stored values if available)
             daysAhead: daysAhead,
             daysBehind: daysBehind,
-            // Exact decimal precision values for accurate receipt display
+            // Exact decimal precision values for accurate receipt display (LEGACY - backend will use stored values if available)
             exactInstallmentsOwed: installment.exactInstallmentsOwed, // e.g., 0.67 installments
             remainingAmountOwed: installment.remainingAmountOwed, // e.g., $21,000
         }
@@ -248,6 +249,7 @@ export function useInstallmentActions(refreshInstallments: () => void) {
                 paymentDate: installment.paymentDate,
                 notes: installment.notes,
                 receiptNumber: installment.id,
+                installmentId: installment.id, // Pass installment ID for database lookup
                 caption: `Recibo de pago - ${installment.loan.user.name}`,
                 storeId: currentStore?.id, // Add storeId
                 paidInstallments: installment.loan.paidInstallments, // Payment status
@@ -255,7 +257,7 @@ export function useInstallmentActions(refreshInstallments: () => void) {
                 totalInstallments: installment.loan.installments, // Payment status
                 paymentFrequency: installment.loan.paymentFrequency, // Payment frequency for calculating installments owed
                 lastPaymentDate: lastPaymentDate, // Previous payment date
-                // Pre-calculated days for receipt to use directly
+                // Pre-calculated days for receipt to use directly (LEGACY - backend will use stored values if available)
                 daysAhead: daysAhead,
                 daysBehind: daysBehind,
             }

@@ -578,6 +578,7 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             const willBeAhead = paymentCoverage ? paymentCoverage.daysAheadAfterPayment > 0 : false
             const isAdvance = willBeAhead
             const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment < 0 : false
+            const isUpToDate = paymentCoverage ? Math.abs(paymentCoverage.daysAheadAfterPayment) < 0.01 : false
 
             // Calculate base amount by subtracting GPS from total amount
             // values.amount is the TOTAL payment (base + gps), we need to send just the base
@@ -594,6 +595,12 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
                 notes: values.notes || "",
                 attachmentUrl: values.attachmentUrl || "",
                 createdById: values.createdById || user?.id,
+            }
+
+            // Include payment coverage data from API if available
+            // Note: Backend will recalculate and store the AFTER-payment status
+            if (paymentCoverage) {
+                payload.daysCoveredByPayment = paymentCoverage.daysCovered
             }
 
             // Set late/advance payment dates from coverage calculation

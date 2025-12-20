@@ -157,6 +157,13 @@ type Installment = {
     // Exact decimal precision fields for late payments (ONLY on most recent installment)
     exactInstallmentsOwed?: number  // e.g., 1.129032258 installments
     remainingAmountOwed?: number    // e.g., $35,000
+    
+    // Payment status AFTER payment is applied (stored in database)
+    // These fields represent the loan status AFTER this payment was processed
+    daysBehind?: number       // Days behind AFTER this payment (0 if caught up or ahead)
+    daysAhead?: number        // Days ahead AFTER this payment (0 if behind or exactly current)
+    isUpToDate?: boolean      // Loan is exactly current after payment (owes 0 days)
+    daysCoveredByPayment?: number // Days this specific payment covers
 
     loan: Loan
 
