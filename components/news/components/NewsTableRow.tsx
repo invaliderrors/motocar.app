@@ -167,6 +167,11 @@ const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof W
         icon: Settings,
         className: "bg-orange-500/15 text-orange-600 border-orange-500/30 dark:bg-orange-500/20 dark:text-orange-400"
     },
+    [NewsCategory.WEEKLY_SKIP]: { 
+        label: "Salto Semanal", 
+        icon: Clock,
+        className: "bg-purple-500/15 text-purple-600 border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400"
+    },
     [NewsCategory.OTHER]: { 
         label: "Otro", 
         icon: HelpCircle,

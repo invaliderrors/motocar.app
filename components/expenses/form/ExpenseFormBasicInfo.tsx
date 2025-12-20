@@ -55,6 +55,8 @@ export function ExpenseBasicInfo({ control }: ExpenseBasicInfoProps) {
                                         <SelectItem value="PURCHASES">Compras</SelectItem>
                                         <SelectItem value="MARKETING">Marketing</SelectItem>
                                         <SelectItem value="TRANSPORT">Transporte</SelectItem>
+                                        <SelectItem value="WORKSHOP">Taller</SelectItem>
+                                        <SelectItem value="SPARE_PARTS">Repuestos</SelectItem>
                                         <SelectItem value="OTHER">Otros</SelectItem>
                                     </SelectContent>
                                 </Select>
