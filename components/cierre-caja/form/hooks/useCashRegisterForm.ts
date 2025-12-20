@@ -29,6 +29,7 @@ export const useCashRegisterForm = (selectedTransactions: SelectedTransaction[],
     const [formState, setFormState] = useState<FormState>(initialFormState)
     const [currentProvider, setCurrentProvider] = useState<Provider | undefined>(undefined);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
     const { user } = useAuth()
 
     const { incomes, expenses, totalExpected, totalExpenses } = useMemo(
@@ -103,6 +104,10 @@ export const useCashRegisterForm = (selectedTransactions: SelectedTransaction[],
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setShowConfirmDialog(true)
+    }
+
+    const confirmSubmit = async () => {
         setFormState((prev) => ({ ...prev, submitting: true, success: false, error: false }))
 
         try {
@@ -127,6 +132,7 @@ export const useCashRegisterForm = (selectedTransactions: SelectedTransaction[],
                 submitting: false,
                 success: true,
             }))
+            setShowConfirmDialog(false)
             setShowSuccessDialog(true)
         } catch (err: any) {
             console.error("Error registrando cierre:", err)
@@ -145,18 +151,21 @@ export const useCashRegisterForm = (selectedTransactions: SelectedTransaction[],
                 error: true,
                 errorMessage,
             }))
+            setShowConfirmDialog(false)
         }
     }
 
     const resetForm = () => {
         setFormState(initialFormState)
         setShowSuccessDialog(false)
+        setShowConfirmDialog(false)
     }
 
     return {
         formState,
         currentProvider,
         showSuccessDialog,
+        showConfirmDialog,
         incomes,
         expenses,
         calculations,
@@ -166,7 +175,9 @@ export const useCashRegisterForm = (selectedTransactions: SelectedTransaction[],
         cashMatches,
         handleInputChange,
         handleSubmit,
+        confirmSubmit,
         resetForm,
         setShowSuccessDialog,
+        setShowConfirmDialog,
     }
 }

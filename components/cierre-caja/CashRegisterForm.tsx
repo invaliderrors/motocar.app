@@ -12,6 +12,7 @@ import { formatCurrency, cn } from "@/lib/utils"
 import { ChartsTab } from "./form/components/ChartsTab"
 import { FormInputs } from "./form/components/FormInput"
 import { ProviderDisplay } from "./form/components/ProviderDisplay"
+import { ConfirmationDialog } from "./form/components/ConfirmationDialog"
 import { SuccessDialog } from "./form/components/SuccessDialog"
 import { SummaryTab } from "./form/components/SummaryTab"
 import { TransactionsTab } from "./form/components/TransactionsTab"
@@ -29,6 +30,7 @@ export function CashRegisterForm({ token, selectedTransactions, closingDate }: C
         formState,
         currentProvider,
         showSuccessDialog,
+        showConfirmDialog,
         incomes,
         expenses,
         calculations,
@@ -38,8 +40,10 @@ export function CashRegisterForm({ token, selectedTransactions, closingDate }: C
         cashMatches,
         handleInputChange,
         handleSubmit,
+        confirmSubmit,
         resetForm,
         setShowSuccessDialog,
+        setShowConfirmDialog,
     } = useCashRegisterForm(selectedTransactions, closingDate)
 
     return (
@@ -183,6 +187,16 @@ export function CashRegisterForm({ token, selectedTransactions, closingDate }: C
                     </div>
                 </div>
             </form>
+
+            <ConfirmationDialog
+                open={showConfirmDialog}
+                onClose={() => setShowConfirmDialog(false)}
+                onConfirm={confirmSubmit}
+                currentProvider={currentProvider}
+                calculations={calculations}
+                isSubmitting={formState.submitting}
+                closingDate={closingDate}
+            />
 
             <SuccessDialog
                 open={showSuccessDialog}
