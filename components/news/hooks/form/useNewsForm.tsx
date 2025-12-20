@@ -91,7 +91,22 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
             case "recurring":
                 return 0 // Recurring dates are calculated dynamically
             case "weekday":
-                return 0 // Weekday skip is calculated dynamically based on day of week
+                // Calculate approximate occurrences per year (52 weeks = ~52 occurrences)
+                // More precise: count actual occurrences in current year
+                const year = new Date().getFullYear()
+                const startOfYear = new Date(year, 0, 1)
+                const endOfYear = new Date(year, 11, 31)
+                let count = 0
+                const current = new Date(startOfYear)
+                
+                while (current <= endOfYear) {
+                    if (skipWeekday !== undefined && current.getDay() === skipWeekday) {
+                        count++
+                    }
+                    current.setDate(current.getDate() + 1)
+                }
+                
+                return count
             default:
                 return 0
         }

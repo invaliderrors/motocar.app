@@ -50,8 +50,13 @@ function parseLocalDate(dateString: string): Date {
 }
 
 // Helper to determine date selection mode from news data
-function getDateSelectionMode(news: News): "single" | "range" | "multiple" | "recurring" {
-    // Check recurring first (has recurringDay set)
+function getDateSelectionMode(news: News): "single" | "range" | "multiple" | "recurring" | "weekday" {
+    // Check weekday skip first (has skipWeekday set)
+    if (news.skipWeekday !== null && news.skipWeekday !== undefined) {
+        return "weekday"
+    }
+    
+    // Check recurring (has recurringDay set)
     if (news.isRecurring && news.recurringDay !== null && news.recurringDay !== undefined) {
         return "recurring"
     }
@@ -93,6 +98,11 @@ const DATE_MODE_CONFIG: Record<string, { label: string; icon: typeof Calendar; c
         icon: Repeat,
         className: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30 dark:bg-cyan-500/20 dark:text-cyan-400"
     },
+    weekday: {
+        label: "Semanal",
+        icon: Clock,
+        className: "bg-purple-500/15 text-purple-600 border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400"
+    },
 }
 
 interface NewsTableRowProps {
@@ -116,6 +126,29 @@ function calculateRecurringOccurrences(news: News): number {
         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     
     return months.length
+}
+
+// Helper to calculate weekday skip occurrences for the current year
+function calculateWeekdayOccurrences(news: News): number {
+    if (news.skipWeekday === null || news.skipWeekday === undefined) {
+        return 0
+    }
+    
+    // Count occurrences of the specific weekday in the current year
+    const year = new Date().getFullYear()
+    const startOfYear = new Date(year, 0, 1)
+    const endOfYear = new Date(year, 11, 31)
+    let count = 0
+    const current = new Date(startOfYear)
+    
+    while (current <= endOfYear) {
+        if (current.getDay() === news.skipWeekday) {
+            count++
+        }
+        current.setDate(current.getDate() + 1)
+    }
+    
+    return count
 }
 
 const NEWS_TYPE_CONFIG: Record<NewsType, { label: string; icon: typeof User; className: string }> = {
@@ -373,6 +406,24 @@ export function NewsTableRow({ news, onDelete, onRefresh }: NewsTableRowProps) {
                                 <Receipt className="h-3.5 w-3.5 text-purple-500" />
                                 <span className="text-sm font-medium text-foreground">
                                     {calculateRecurringOccurrences(news)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">cuotas/año</span>
+                            </div>
+                        </div>
+                    ) : dateMode === "weekday" ? (
+                        // For weekday skip news, show the number of occurrences per year
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20">
+                                <Clock className="h-3.5 w-3.5 text-purple-500" />
+                                <span className="text-sm font-medium text-foreground">
+                                    {calculateWeekdayOccurrences(news)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">días/año</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-violet-500/10 border border-violet-500/20">
+                                <Receipt className="h-3.5 w-3.5 text-violet-500" />
+                                <span className="text-sm font-medium text-foreground">
+                                    {calculateWeekdayOccurrences(news)}
                                 </span>
                                 <span className="text-xs text-muted-foreground">cuotas/año</span>
                             </div>
