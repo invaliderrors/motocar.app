@@ -52,6 +52,7 @@ export function CategorySelector({ form, newsType }: CategorySelectorProps) {
                                 <>
                                     <SelectItem value={NewsCategory.DAY_OFF}>Día Libre</SelectItem>
                                     <SelectItem value={NewsCategory.HOLIDAY}>Festivo</SelectItem>
+                                    <SelectItem value={NewsCategory.WEEKLY_SKIP}>Exclusión Semanal</SelectItem>
                                     <SelectItem value={NewsCategory.SYSTEM_MAINTENANCE}>
                                         Mant. Sistema
                                     </SelectItem>

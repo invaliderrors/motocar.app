@@ -1,7 +1,7 @@
 "use client"
 
 import { UseFormReturn } from "react-hook-form"
-import { Calendar, CalendarRange, CalendarDays, Repeat } from "lucide-react"
+import { Calendar, CalendarRange, CalendarDays, Repeat, CalendarX } from "lucide-react"
 import {
     FormControl,
     FormField,
@@ -39,9 +39,14 @@ export function DateModeSelector({ form }: DateModeSelectorProps) {
                                 if (value !== "range") {
                                     form.setValue("endDate", "")
                                 }
+                                // Clear skipWeekday if not weekday mode
+                                if (value !== "weekday") {
+                                    form.setValue("skipWeekday", undefined)
+                                    form.setValue("applyToHistoricalLoans", false)
+                                }
                             }}
                             value={field.value}
-                            className="grid grid-cols-4 gap-3"
+                            className="grid grid-cols-5 gap-3"
                         >
                             <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
                                 <RadioGroupItem value="single" id="single" />
@@ -80,6 +85,16 @@ export function DateModeSelector({ form }: DateModeSelectorProps) {
                                     <div>
                                         <p className="font-medium text-sm">Recurrente</p>
                                         <p className="text-xs text-muted-foreground">Cada mes</p>
+                                    </div>
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                                <RadioGroupItem value="weekday" id="weekday" />
+                                <Label htmlFor="weekday" className="flex items-center gap-2 cursor-pointer flex-1">
+                                    <CalendarX className="h-4 w-4 text-muted-foreground" />
+                                    <div>
+                                        <p className="font-medium text-sm">Día Semanal</p>
+                                        <p className="text-xs text-muted-foreground">Excluir día</p>
                                     </div>
                                 </Label>
                             </div>

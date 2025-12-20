@@ -10,7 +10,7 @@ import { useStore } from "@/contexts/StoreContext"
 import { useToast } from "@/components/ui/use-toast"
 
 // Date selection mode types
-export type DateSelectionMode = "single" | "range" | "multiple" | "recurring"
+export type DateSelectionMode = "single" | "range" | "multiple" | "recurring" | "weekday"
 
 export const newsSchema = z.object({
     type: z.nativeEnum(NewsType),
@@ -22,13 +22,16 @@ export const newsSchema = z.object({
     endDate: z.string().optional(),
     loanId: z.string().optional(),
     // Date selection mode
-    dateSelectionMode: z.enum(["single", "range", "multiple", "recurring"]).default("single"),
+    dateSelectionMode: z.enum(["single", "range", "multiple", "recurring", "weekday"]).default("single"),
     // Recurring configuration
     isRecurring: z.boolean().default(false),
     recurringDay: z.number().min(1).max(31).optional(),
     recurringMonths: z.array(z.number().min(1).max(12)).default([]),
     // Multiple dates
     skippedDates: z.array(z.string()).default([]),
+    // Weekday skip configuration
+    skipWeekday: z.number().min(0).max(6).optional(),
+    applyToHistoricalLoans: z.boolean().default(false),
 })
 
 export type NewsFormValues = z.infer<typeof newsSchema>
@@ -60,6 +63,8 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
             recurringDay: undefined,
             recurringMonths: [],
             skippedDates: [],
+            skipWeekday: 0, // Default to Sunday
+            applyToHistoricalLoans: false,
         },
     })
 
@@ -85,6 +90,8 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 return skippedDates.length
             case "recurring":
                 return 0 // Recurring dates are calculated dynamically
+            case "weekday":
+                return 0 // Weekday skip is calculated dynamically based on day of week
             default:
                 return 0
         }
@@ -94,7 +101,9 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
         if (news) {
             // Determine date selection mode from existing data
             let mode: DateSelectionMode = "single"
-            if (news.isRecurring) {
+            if (news.skipWeekday !== null && news.skipWeekday !== undefined) {
+                mode = "weekday"
+            } else if (news.isRecurring) {
                 mode = "recurring"
             } else if (news.skippedDates && news.skippedDates.length > 1) {
                 mode = "multiple"
@@ -116,6 +125,8 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 recurringDay: news.recurringDay || undefined,
                 recurringMonths: news.recurringMonths || [],
                 skippedDates: news.skippedDates?.map(d => new Date(d).toISOString().split("T")[0]) || [],
+                skipWeekday: news.skipWeekday ?? undefined,
+                applyToHistoricalLoans: news.applyToHistoricalLoans || false,
             })
         } else {
             form.reset({
@@ -132,6 +143,8 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 recurringDay: undefined,
                 recurringMonths: [],
                 skippedDates: [],
+                skipWeekday: 0, // Default to Sunday
+                applyToHistoricalLoans: false,
             })
         }
     }, [news, open])
@@ -161,6 +174,9 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 case "recurring":
                     // Recurring mode uses recurringDay and recurringMonths
                     break
+                case "weekday":
+                    // Weekday mode uses skipWeekday and applyToHistoricalLoans
+                    break
             }
 
             const daysUnavailable = calculateDaysUnavailable()
@@ -183,6 +199,8 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
                 recurringDay: values.dateSelectionMode === "recurring" ? values.recurringDay : undefined,
                 recurringMonths: values.dateSelectionMode === "recurring" ? values.recurringMonths : [],
                 skippedDates: finalSkippedDates,
+                skipWeekday: values.dateSelectionMode === "weekday" ? values.skipWeekday : undefined,
+                applyToHistoricalLoans: values.dateSelectionMode === "weekday" ? values.applyToHistoricalLoans : undefined,
             }
 
             if (news) {

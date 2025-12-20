@@ -21,6 +21,9 @@ export interface CreateNewsDto {
     recurringDay?: number;
     recurringMonths?: number[];
     skippedDates?: string[];
+    // Weekday skip configuration
+    skipWeekday?: number;
+    applyToHistoricalLoans?: boolean;
 }
 
 export interface UpdateNewsDto {
@@ -41,6 +44,9 @@ export interface UpdateNewsDto {
     recurringDay?: number;
     recurringMonths?: number[];
     skippedDates?: string[];
+    // Weekday skip configuration
+    skipWeekday?: number;
+    applyToHistoricalLoans?: boolean;
 }
 
 export interface QueryNewsDto {

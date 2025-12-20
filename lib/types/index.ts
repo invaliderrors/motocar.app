@@ -444,6 +444,7 @@ export enum NewsCategory {
     DAY_OFF = "DAY_OFF",
     HOLIDAY = "HOLIDAY",
     SYSTEM_MAINTENANCE = "SYSTEM_MAINTENANCE",
+    WEEKLY_SKIP = "WEEKLY_SKIP",
     OTHER = "OTHER",
 }
 
@@ -465,6 +466,9 @@ export type News = {
     recurringDay: number | null
     recurringMonths: number[]
     skippedDates: string[]
+    // Weekday skip configuration
+    skipWeekday: number | null
+    applyToHistoricalLoans: boolean
     // Vehicle type filter
     vehicleType: VehicleType | null
     storeId: string
