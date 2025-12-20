@@ -73,6 +73,7 @@ export function useNewsForm({ news, open, onSuccess }: UseNewsFormProps) {
     const endDate = form.watch("endDate")
     const dateSelectionMode = form.watch("dateSelectionMode")
     const skippedDates = form.watch("skippedDates")
+    const skipWeekday = form.watch("skipWeekday")
 
     // Calculate days unavailable based on date selection mode
     const calculateDaysUnavailable = (): number => {
