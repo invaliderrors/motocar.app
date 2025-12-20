@@ -11,7 +11,7 @@ export default function ExpensesPage() {
         subtitle="Gestiona todos los egresos del negocio"
         badgeIcon={TrendingDown}
         badgeLabel="Gastos"
-        badgeColor="red"
+        badgeColor="rose"
       />
       <div className="flex-1 overflow-auto p-6 bg-gradient-to-br from-background via-background to-muted/20">
         <ExpenseTable />
