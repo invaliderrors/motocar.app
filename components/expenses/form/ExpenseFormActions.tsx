@@ -11,24 +11,30 @@ interface ExpenseFormActionsProps {
 
 export function ExpenseFormActions({ loading, uploadingImage, isEditing }: ExpenseFormActionsProps) {
     return (
-        <div className="flex justify-end gap-4 pt-2">
-            <Button
-                type="submit"
-                disabled={loading || uploadingImage}
-                className="bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white shadow-md hover:shadow-lg transition-all"
-            >
-                {loading ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {isEditing ? "Actualizando..." : "Guardando..."}
-                    </>
-                ) : (
-                    <>
-                        <Save className="mr-2 h-4 w-4" />
-                        {isEditing ? "Actualizar Egreso" : "Guardar Egreso"}
-                    </>
-                )}
-            </Button>
+        <div className="flex items-center justify-between pt-6 border-t">
+            <p className="text-sm text-muted-foreground">
+                {isEditing ? "Los cambios se guardarán inmediatamente" : "Todos los campos marcados con * son obligatorios"}
+            </p>
+            <div className="flex gap-3">
+                <Button
+                    type="submit"
+                    disabled={loading || uploadingImage}
+                    size="lg"
+                    className="px-8"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Guardando...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="mr-2 h-4 w-4" />
+                            {isEditing ? "Actualizar Egreso" : "Guardar Egreso"}
+                        </>
+                    )}
+                </Button>
+            </div>
         </div>
     )
 }

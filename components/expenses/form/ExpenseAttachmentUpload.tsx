@@ -25,15 +25,21 @@ export function ExpenseAttachmentUpload({
     onRemoveImage,
 }: ExpenseAttachmentUploadProps) {
     return (
-        <FormField
-            control={control}
-            name="attachmentUrl"
-            render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2">
-                    <FormLabel className="flex items-center gap-1.5">
-                        <ImageIcon className="h-4 w-4 text-primary" />
-                        Comprobante
-                    </FormLabel>
+        <div className="bg-card border border-border rounded-lg p-6 shadow-sm space-y-5 h-full">
+            <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                    <ImageIcon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">Comprobante</h3>
+                    <p className="text-sm text-muted-foreground">Adjuntar evidencia</p>
+                </div>
+            </div>
+            <FormField
+                control={control}
+                name="attachmentUrl"
+                render={({ field }) => (
+                    <FormItem>
                     <div className="space-y-4">
                         {!imagePreview ? (
                             <div className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg p-6 transition-all hover:border-primary/50">
@@ -92,8 +98,9 @@ export function ExpenseAttachmentUpload({
                         <FormDescription className="text-xs">Adjunte una imagen del comprobante de pago (opcional)</FormDescription>
                         <FormMessage />
                     </div>
-                </FormItem>
-            )}
-        />
+                    </FormItem>
+                )}
+            />
+        </div>
     )
 }

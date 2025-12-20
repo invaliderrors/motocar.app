@@ -1,7 +1,6 @@
 "use client"
 
 import { Form } from "@/components/ui/form"
-import { Card, CardContent } from "@/components/ui/card"
 import type { Expense } from "@/lib/types"
 import { useExpenseForm } from "./hooks/useExpenseForm"
 import { ExpenseAttachmentUpload } from "./form/ExpenseAttachmentUpload"
@@ -36,25 +35,17 @@ export function ExpenseForm({ onSuccess, isModal = false, expenseData, isEditing
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-5">
         <ExpenseBasicInfo control={form.control} />
-
-        <Card className="border-border shadow-sm">
-          <CardContent className="pt-6">
-            <ExpenseAdditionalDetails control={form.control} />
-            <div className="mt-6">
-              <ExpenseAttachmentUpload
-                control={form.control}
-                imagePreview={imagePreview}
-                uploadingImage={uploadingImage}
-                fileInputRef={fileInputRef}
-                onFileChange={handleFileChange}
-                onRemoveImage={removeImage}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
+        <ExpenseAdditionalDetails control={form.control} />
+        <ExpenseAttachmentUpload
+          control={form.control}
+          imagePreview={imagePreview}
+          uploadingImage={uploadingImage}
+          fileInputRef={fileInputRef}
+          onFileChange={handleFileChange}
+          onRemoveImage={removeImage}
+        />
         <ExpenseFormActions loading={loading} uploadingImage={uploadingImage} isEditing={formIsEditing} />
       </form>
     </Form>

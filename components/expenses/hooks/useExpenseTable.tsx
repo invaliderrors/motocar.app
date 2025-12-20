@@ -14,6 +14,7 @@ export function useExpenseTable() {
     const [expenses, setExpenses] = useState<Expense[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+    const [searchInput, setSearchInput] = useState("") // For immediate UI update
     const [categoryFilter, setCategoryFilter] = useState("todos")
     const [providerFilter, setProviderFilter] = useState("todos")
     const [currentPage, setCurrentPage] = useState(1)
@@ -34,7 +35,16 @@ export function useExpenseTable() {
 
     useEffect(() => {
         fetchExpenses()
-    }, [refreshKey])
+    }, [refreshKey, searchTerm, categoryFilter, providerFilter])
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchTerm(searchInput)
+            setCurrentPage(1)
+        }, 500)
+        return () => clearTimeout(timer)
+    }, [searchInput])
 
     const fetchExpenses = async () => {
         try {
@@ -47,6 +57,19 @@ export function useExpenseTable() {
             }
             if (dateRange?.to) {
                 params.append("endDate", dateRange.to.toISOString().split("T")[0])
+            }
+            if (searchTerm) {
+                params.append("search", searchTerm)
+            }
+            if (categoryFilter && categoryFilter !== "todos") {
+                params.append("category", categoryFilter)
+            }
+            if (providerFilter && providerFilter !== "todos") {
+                // Find provider ID from name
+                const provider = providers.find(p => p.name === providerFilter)
+                if (provider) {
+                    params.append("providerId", provider.id)
+                }
             }
             if (params.toString()) {
                 url += `?${params.toString()}`
@@ -152,6 +175,8 @@ export function useExpenseTable() {
             SALARIES: "Salarios",
             TAXES: "Impuestos",
             MAINTENANCE: "Mantenimiento",
+            WORKSHOP: "Taller",
+            SPARE_PARTS: "Repuestos",
             PURCHASES: "Compras",
             MARKETING: "Marketing",
             TRANSPORT: "Transporte",
@@ -210,25 +235,15 @@ export function useExpenseTable() {
     }
 
     const clearFilters = () => {
+        setSearchInput("")
         setSearchTerm("")
         setCategoryFilter("todos")
         setProviderFilter("todos")
         setCurrentPage(1)
     }
 
-    // Computed values
-    const filteredExpenses = expenses.filter((expense) => {
-        const matchesSearch =
-            expense.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            expense.beneficiary.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            expense.reference?.toLowerCase().includes(searchTerm.toLowerCase())
-
-        const matchesCategory = categoryFilter === "todos" || expense.category === categoryFilter
-        const matchesProvider = providerFilter === "todos" || expense.provider?.name === providerFilter
-
-        return matchesSearch && matchesCategory && matchesProvider
-    })
+    // Computed values - no more client-side filtering, use server data directly
+    const filteredExpenses = expenses
 
     const totalItems = filteredExpenses.length
     const totalPages = Math.ceil(totalItems / itemsPerPage)
@@ -256,7 +271,7 @@ export function useExpenseTable() {
         return pages
     }
 
-    const hasActiveFilters = searchTerm !== "" || categoryFilter !== "todos" || providerFilter !== "todos"
+    const hasActiveFilters = searchInput !== "" || categoryFilter !== "todos" || providerFilter !== "todos"
 
     // Get unique providers from expenses for filter options
     const availableProviders = providers.filter((provider) =>
@@ -267,8 +282,8 @@ export function useExpenseTable() {
         // State
         expenses: currentItems,
         loading,
-        searchTerm,
-        setSearchTerm,
+        searchTerm: searchInput, // Return searchInput for UI binding
+        setSearchTerm: setSearchInput, // Use setSearchInput for immediate updates
         categoryFilter,
         setCategoryFilter,
         providerFilter,
