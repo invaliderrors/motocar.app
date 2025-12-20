@@ -54,6 +54,7 @@ const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof W
     [NewsCategory.DAY_OFF]: { label: "Día Libre", icon: Calendar, color: "bg-green-500" },
     [NewsCategory.HOLIDAY]: { label: "Festivo", icon: CalendarDays, color: "bg-green-600" },
     [NewsCategory.SYSTEM_MAINTENANCE]: { label: "Mtto. Sistema", icon: Settings, color: "bg-yellow-500" },
+    [NewsCategory.WEEKLY_SKIP]: { label: "Exclusión Semanal", icon: CalendarX, color: "bg-purple-500" },
     [NewsCategory.OTHER]: { label: "Otro", icon: FileText, color: "bg-gray-500" },
 }
 
