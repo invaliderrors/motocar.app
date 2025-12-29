@@ -185,6 +185,16 @@ const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof W
         icon: Car,
         className: "bg-rose-500/15 text-rose-600 border-rose-500/30 dark:bg-rose-500/20 dark:text-rose-400"
     },
+    [NewsCategory.DISABILITY]: { 
+        label: "Incapacidad", 
+        icon: AlertTriangle,
+        className: "bg-orange-500/15 text-orange-600 border-orange-500/30 dark:bg-orange-500/20 dark:text-orange-400"
+    },
+    [NewsCategory.COMPENSATORY_DAY]: { 
+        label: "Día compensatorio", 
+        icon: Sun,
+        className: "bg-cyan-500/15 text-cyan-600 border-cyan-500/30 dark:bg-cyan-500/20 dark:text-cyan-400"
+    },
     [NewsCategory.DAY_OFF]: { 
         label: "Día Libre", 
         icon: Sun,

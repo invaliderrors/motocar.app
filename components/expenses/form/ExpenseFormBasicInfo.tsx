@@ -50,16 +50,25 @@ export function ExpenseBasicInfo({ control }: ExpenseBasicInfoProps) {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="RENT">Alquiler</SelectItem>
+                                        <SelectItem value="RENT">Arriendo</SelectItem>
                                         <SelectItem value="SERVICES">Servicios</SelectItem>
-                                        <SelectItem value="SALARIES">Salarios</SelectItem>
+                                        <SelectItem value="SALARIES">Nómina</SelectItem>
                                         <SelectItem value="TAXES">Impuestos</SelectItem>
                                         <SelectItem value="MAINTENANCE">Mantenimiento</SelectItem>
-                                        <SelectItem value="PURCHASES">Compras</SelectItem>
-                                        <SelectItem value="MARKETING">Marketing</SelectItem>
-                                        <SelectItem value="TRANSPORT">Transporte</SelectItem>
                                         <SelectItem value="WORKSHOP">Taller</SelectItem>
                                         <SelectItem value="SPARE_PARTS">Repuestos</SelectItem>
+                                        <SelectItem value="PURCHASES">Compras</SelectItem>
+                                        <SelectItem value="MARKETING">Mercadeo</SelectItem>
+                                        <SelectItem value="TRANSPORT">Transporte</SelectItem>
+                                        <SelectItem value="WORKSHOP_TOOLS">Herramientas de taller</SelectItem>
+                                        <SelectItem value="SHOWROOM_EXPENSES">Gastos de sala</SelectItem>
+                                        <SelectItem value="WORKER_GASOLINE">Gasolina trabajadores</SelectItem>
+                                        <SelectItem value="EMPLOYEE_BONUS">Bonificación empleados</SelectItem>
+                                        <SelectItem value="PAYROLL_EXPENSES">Gastos de nómina</SelectItem>
+                                        <SelectItem value="BONUS_EXPENSES">Gastos de primas</SelectItem>
+                                        <SelectItem value="TRAVEL_ALLOWANCES">Viáticos</SelectItem>
+                                        <SelectItem value="MOTORCYCLE_PREP_GASOLINE">Gasolina para alistamiento de motos</SelectItem>
+                                        <SelectItem value="TRAFFIC_FINES">Pago de comparendos</SelectItem>
                                         <SelectItem value="OTHER">Otros</SelectItem>
                                     </SelectContent>
                                 </Select>

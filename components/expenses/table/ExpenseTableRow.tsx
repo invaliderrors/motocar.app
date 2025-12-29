@@ -50,7 +50,7 @@ interface ExpenseTableRowProps {
 
 const categoryMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     RENT: {
-        label: "Alquiler",
+        label: "Arriendo",
         color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800/30",
         icon: <Home className="h-3 w-3" />,
     },
@@ -60,7 +60,7 @@ const categoryMap: Record<string, { label: string; color: string; icon: React.Re
         icon: <FileText className="h-3 w-3" />,
     },
     SALARIES: {
-        label: "Salarios",
+        label: "Nómina",
         color:
             "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800/30",
         icon: <User className="h-3 w-3" />,
@@ -77,13 +77,23 @@ const categoryMap: Record<string, { label: string; color: string; icon: React.Re
             "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800/30",
         icon: <FileText className="h-3 w-3" />,
     },
+    WORKSHOP: {
+        label: "Taller",
+        color: "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300 border-slate-200 dark:border-slate-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    SPARE_PARTS: {
+        label: "Repuestos",
+        color: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300 border-teal-200 dark:border-teal-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
     PURCHASES: {
         label: "Compras",
         color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 border-pink-200 dark:border-pink-800/30",
         icon: <Wallet className="h-3 w-3" />,
     },
     MARKETING: {
-        label: "Marketing",
+        label: "Mercadeo",
         color:
             "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/30",
         icon: <FileText className="h-3 w-3" />,
@@ -92,6 +102,51 @@ const categoryMap: Record<string, { label: string; color: string; icon: React.Re
         label: "Transporte",
         color:
             "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    WORKSHOP_TOOLS: {
+        label: "Herramientas de taller",
+        color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    SHOWROOM_EXPENSES: {
+        label: "Gastos de sala",
+        color: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    WORKER_GASOLINE: {
+        label: "Gasolina trabajadores",
+        color: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-300 border-lime-200 dark:border-lime-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    EMPLOYEE_BONUS: {
+        label: "Bonificación empleados",
+        color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    PAYROLL_EXPENSES: {
+        label: "Gastos de nómina",
+        color: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300 border-sky-200 dark:border-sky-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    BONUS_EXPENSES: {
+        label: "Gastos de primas",
+        color: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 border-fuchsia-200 dark:border-fuchsia-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    TRAVEL_ALLOWANCES: {
+        label: "Viáticos",
+        color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    MOTORCYCLE_PREP_GASOLINE: {
+        label: "Gasolina para alistamiento de motos",
+        color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300 border-violet-200 dark:border-violet-800/30",
+        icon: <FileText className="h-3 w-3" />,
+    },
+    TRAFFIC_FINES: {
+        label: "Pago de comparendos",
+        color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800/30",
         icon: <FileText className="h-3 w-3" />,
     },
     OTHER: {

@@ -47,6 +47,8 @@ export function CategorySelector({ form, newsType }: CategorySelectorProps) {
                                     <SelectItem value={NewsCategory.MAINTENANCE}>Mantenimiento</SelectItem>
                                     <SelectItem value={NewsCategory.ACCIDENT}>Accidente</SelectItem>
                                     <SelectItem value={NewsCategory.THEFT}>Robo</SelectItem>
+                                    <SelectItem value={NewsCategory.DISABILITY}>Incapacidad</SelectItem>
+                                    <SelectItem value={NewsCategory.COMPENSATORY_DAY}>Día compensatorio</SelectItem>
                                 </>
                             ) : (
                                 <>

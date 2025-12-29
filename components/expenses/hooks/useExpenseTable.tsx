@@ -170,16 +170,25 @@ export function useExpenseTable() {
 
     const exportToCSV = () => {
         const categoryMap: Record<string, string> = {
-            RENT: "Alquiler",
+            RENT: "Arriendo",
             SERVICES: "Servicios",
-            SALARIES: "Salarios",
+            SALARIES: "Nómina",
             TAXES: "Impuestos",
             MAINTENANCE: "Mantenimiento",
             WORKSHOP: "Taller",
             SPARE_PARTS: "Repuestos",
             PURCHASES: "Compras",
-            MARKETING: "Marketing",
+            MARKETING: "Mercadeo",
             TRANSPORT: "Transporte",
+            WORKSHOP_TOOLS: "Herramientas de taller",
+            SHOWROOM_EXPENSES: "Gastos de sala",
+            WORKER_GASOLINE: "Gasolina trabajadores",
+            EMPLOYEE_BONUS: "Bonificación empleados",
+            PAYROLL_EXPENSES: "Gastos de nómina",
+            BONUS_EXPENSES: "Gastos de primas",
+            TRAVEL_ALLOWANCES: "Viáticos",
+            MOTORCYCLE_PREP_GASOLINE: "Gasolina para alistamiento de motos",
+            TRAFFIC_FINES: "Pago de comparendos",
             OTHER: "Otros",
         }
 
