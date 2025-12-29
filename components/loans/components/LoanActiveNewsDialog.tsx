@@ -51,6 +51,8 @@ const NEWS_CATEGORY_CONFIG: Record<NewsCategory, { label: string; icon: typeof W
     [NewsCategory.MAINTENANCE]: { label: "Mantenimiento", icon: Settings, color: "bg-blue-500" },
     [NewsCategory.ACCIDENT]: { label: "Accidente", icon: Car, color: "bg-red-500" },
     [NewsCategory.THEFT]: { label: "Robo", icon: Shield, color: "bg-red-700" },
+    [NewsCategory.DISABILITY]: { label: "Incapacidad", icon: Shield, color: "bg-amber-500" },
+    [NewsCategory.COMPENSATORY_DAY]: { label: "Día compensatorio", icon: Calendar, color: "bg-cyan-500" },
     [NewsCategory.DAY_OFF]: { label: "Día Libre", icon: Calendar, color: "bg-green-500" },
     [NewsCategory.HOLIDAY]: { label: "Festivo", icon: CalendarDays, color: "bg-green-600" },
     [NewsCategory.SYSTEM_MAINTENANCE]: { label: "Mtto. Sistema", icon: Settings, color: "bg-yellow-500" },
