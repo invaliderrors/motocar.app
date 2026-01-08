@@ -34,6 +34,13 @@ interface PaymentCoverageResponse {
     currentDaysAhead: number // Days ahead BEFORE this payment
     skippedDatesCount: number
     skippedDates: string[]
+    skippedNews?: Array<{
+        id: string
+        title: string
+        category: string
+        isRecurring: boolean
+        dates: string[]
+    }>
 }
 
 const installmentSchema = z.object({

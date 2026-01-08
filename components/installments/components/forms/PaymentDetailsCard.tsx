@@ -1,5 +1,6 @@
 "use client"
 import type React from "react"
+import { useState } from "react"
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -15,12 +16,6 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { utcToZonedTime } from "date-fns-tz"
 import type { Control } from "react-hook-form"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 // Payment coverage response type from API
 interface PaymentCoverageResponse {
@@ -41,6 +36,13 @@ interface PaymentCoverageResponse {
     currentDaysAhead: number // Days ahead BEFORE this payment
     skippedDatesCount?: number
     skippedDates?: string[]
+    skippedNews?: Array<{
+        id: string
+        title: string
+        category: string
+        isRecurring: boolean
+        dates: string[]
+    }>
 }
 
 interface FileAttachmentProps {
@@ -63,6 +65,8 @@ interface PaymentDetailsCardProps {
 }
 
 export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, loanNews = [], loadingNews = false, fileAttachment }: PaymentDetailsCardProps) {
+    const [excludedOpen, setExcludedOpen] = useState(false)
+
     // Colombian timezone
     const COLOMBIA_TZ = "America/Bogota"
     
@@ -131,37 +135,53 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                     </span>
                     {/* Skipped Dates Badge in Header */}
                     {paymentCoverage?.skippedDatesCount && paymentCoverage.skippedDatesCount > 0 && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 cursor-help">
-                                        <CalendarX className="h-3 w-3 mr-1" />
-                                        {paymentCoverage.skippedDatesCount} excluido{paymentCoverage.skippedDatesCount > 1 ? 's' : ''}
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="left" className="max-w-xs">
-                                    <div className="text-xs">
-                                        <p className="font-semibold mb-1">Días no cobrados (novedades):</p>
-                                        {paymentCoverage.skippedDates && paymentCoverage.skippedDates.length > 0 ? (
-                                            <div className="space-y-0.5">
-                                                {paymentCoverage.skippedDates.slice(0, 7).map((date, idx) => (
-                                                    <p key={idx} className="text-muted-foreground">
-                                                        • {format(new Date(date), "EEEE dd MMM", { locale: es })}
-                                                    </p>
-                                                ))}
-                                                {paymentCoverage.skippedDates.length > 7 && (
-                                                    <p className="text-muted-foreground font-medium">
-                                                        +{paymentCoverage.skippedDates.length - 7} días más...
-                                                    </p>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <p className="text-muted-foreground">Festivos o cierres de tienda</p>
-                                        )}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <Popover open={excludedOpen} onOpenChange={setExcludedOpen}>
+                            <PopoverTrigger asChild>
+                                <Badge
+                                    variant="outline"
+                                    className="text-[10px] px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 cursor-help"
+                                    tabIndex={0}
+                                    onMouseEnter={() => setExcludedOpen(true)}
+                                    onMouseLeave={() => setExcludedOpen(false)}
+                                    onFocus={() => setExcludedOpen(true)}
+                                    onBlur={() => setExcludedOpen(false)}
+                                >
+                                    <CalendarX className="h-3 w-3 mr-1" />
+                                    {paymentCoverage.skippedDatesCount} excluido{paymentCoverage.skippedDatesCount > 1 ? 's' : ''}
+                                </Badge>
+                            </PopoverTrigger>
+                            <PopoverContent side="left" className="w-80 max-w-xs">
+                                <div className="text-xs">
+                                    <p className="font-semibold mb-2">Días no cobrados (novedades)</p>
+                                    {paymentCoverage.skippedNews && paymentCoverage.skippedNews.length > 0 ? (
+                                        <div className="space-y-3 max-h-56 overflow-auto pr-1">
+                                            {paymentCoverage.skippedNews.map((n) => (
+                                                <div key={n.id}>
+                                                    <p className="font-medium">{n.title}</p>
+                                                    <div className="mt-1 space-y-0.5">
+                                                        {n.dates.map((date, idx) => (
+                                                            <p key={idx} className="text-muted-foreground">
+                                                                • {format(new Date(date), "EEEE dd MMM", { locale: es })}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : paymentCoverage.skippedDates && paymentCoverage.skippedDates.length > 0 ? (
+                                        <div className="space-y-0.5 max-h-56 overflow-auto pr-1">
+                                            {paymentCoverage.skippedDates.map((date, idx) => (
+                                                <p key={idx} className="text-muted-foreground">
+                                                    • {format(new Date(date), "EEEE dd MMM", { locale: es })}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">Festivos o cierres de tienda</p>
+                                    )}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     )}
                 </CardTitle>
             </CardHeader>
