@@ -161,18 +161,33 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                                     {formValues.loanTermMonths > 0 && formValues.paymentFrequency && (
                                         <span className="block mt-1 font-medium text-primary">
                                             {(() => {
+                                                const method = formValues.dayCalculationMethod || "THIRTY_DAYS"
+                                                const DAYS_PER_MONTH = 30
+                                                
                                                 // If dates are provided, calculate from dates
                                                 if (formValues.startDate && formValues.endDate) {
-                                                    const calculateInstallmentsFromDates = (startDate: string, endDate: string, frequency: string): number => {
+                                                    const calculateInstallmentsFromDates = (startDate: string, endDate: string, frequency: string, calcMethod: string): number => {
                                                         const start = new Date(startDate)
                                                         const end = new Date(endDate)
                                                         
                                                         if (start >= end) return 0
                                                         
                                                         if (frequency === "DAILY") {
-                                                            const diffTime = Math.abs(end.getTime() - start.getTime())
-                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-                                                            return diffDays
+                                                            if (calcMethod === "ACTUAL_DAYS") {
+                                                                // Use actual calendar days
+                                                                const diffTime = Math.abs(end.getTime() - start.getTime())
+                                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                                                                return diffDays
+                                                            } else {
+                                                                // THIRTY_DAYS: Use 30-day month calculation
+                                                                const monthsDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
+                                                                const daysDiff = end.getDate() - start.getDate()
+                                                                if (daysDiff < 0) {
+                                                                    return (monthsDiff - 1) * DAYS_PER_MONTH + (DAYS_PER_MONTH + daysDiff)
+                                                                } else {
+                                                                    return monthsDiff * DAYS_PER_MONTH + daysDiff
+                                                                }
+                                                            }
                                                         } else {
                                                             const diffTime = Math.abs(end.getTime() - start.getTime())
                                                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -181,8 +196,14 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                                                                 case "WEEKLY": return Math.ceil(diffDays / 7)
                                                                 case "BIWEEKLY": return Math.ceil(diffDays / 14)
                                                                 case "MONTHLY":
-                                                                    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
-                                                                    return Math.max(1, months)
+                                                                    if (calcMethod === "ACTUAL_DAYS") {
+                                                                        const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
+                                                                        return Math.max(1, months)
+                                                                    } else {
+                                                                        // THIRTY_DAYS
+                                                                        const monthsDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
+                                                                        return Math.max(1, monthsDiff)
+                                                                    }
                                                                 default: return 0
                                                             }
                                                         }
@@ -191,28 +212,102 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                                                     const installments = calculateInstallmentsFromDates(
                                                         formValues.startDate, 
                                                         formValues.endDate, 
-                                                        formValues.paymentFrequency
+                                                        formValues.paymentFrequency,
+                                                        method
                                                     )
-                                                    return `${installments} cuotas (calculado desde fechas)`
+                                                    const methodLabel = method === "ACTUAL_DAYS" ? "días reales" : "30 días/mes"
+                                                    return `${installments} cuotas totales (${methodLabel})`
                                                 }
                                                 
-                                                // Calculate installments using exactly 30 days per month
-                                                // Example: 18 months = 540 installments (18 * 30)
-                                                const DAYS_PER_MONTH = 30
-                                                const getInstallments = (months: number, freq: string, startDate?: string) => {
+                                                // Calculate installments from loan term months
+                                                // If we have a start date, calculate the actual end date and use that
+                                                if (formValues.startDate && formValues.loanTermMonths > 0) {
+                                                    const start = new Date(formValues.startDate)
+                                                    let end: Date
+                                                    
+                                                    if (method === "ACTUAL_DAYS") {
+                                                        // Add actual months to get the real end date
+                                                        end = new Date(start)
+                                                        end.setMonth(end.getMonth() + formValues.loanTermMonths)
+                                                    } else {
+                                                        // THIRTY_DAYS: add exactly loanTermMonths * 30 days
+                                                        end = new Date(start)
+                                                        end.setDate(end.getDate() + (formValues.loanTermMonths * DAYS_PER_MONTH))
+                                                    }
+                                                    
+                                                    // Now calculate installments based on these dates
+                                                    if (formValues.paymentFrequency === "DAILY") {
+                                                        if (method === "ACTUAL_DAYS") {
+                                                            const diffTime = Math.abs(end.getTime() - start.getTime())
+                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                                                            const installments = diffDays
+                                                            const methodLabel = "días reales"
+                                                            return `${installments} cuotas totales (${methodLabel})`
+                                                        } else {
+                                                            // THIRTY_DAYS
+                                                            const installments = formValues.loanTermMonths * DAYS_PER_MONTH
+                                                            const methodLabel = "30 días/mes"
+                                                            return `${installments} cuotas totales (${methodLabel})`
+                                                        }
+                                                    } else if (formValues.paymentFrequency === "MONTHLY") {
+                                                        const installments = formValues.loanTermMonths
+                                                        const methodLabel = method === "ACTUAL_DAYS" ? "días reales" : "30 días/mes"
+                                                        return `${installments} cuotas totales (${methodLabel})`
+                                                    } else {
+                                                        // WEEKLY or BIWEEKLY
+                                                        const divisor = formValues.paymentFrequency === "WEEKLY" ? 7 : 14
+                                                        const installments = Math.round((formValues.loanTermMonths * DAYS_PER_MONTH) / divisor)
+                                                        const methodLabel = method === "ACTUAL_DAYS" ? "días reales" : "30 días/mes"
+                                                        return `${installments} cuotas totales (${methodLabel})`
+                                                    }
+                                                }
+                                                
+                                                // Fallback if no start date
+                                                const getInstallments = (months: number, freq: string, calcMethod: string) => {
+                                                    if (freq === "DAILY") {
+                                                        return months * DAYS_PER_MONTH
+                                                    }
+                                                    
                                                     switch (freq) {
-                                                        case "DAILY": return months * DAYS_PER_MONTH
                                                         case "WEEKLY": return Math.round((months * DAYS_PER_MONTH) / 7)
                                                         case "BIWEEKLY": return Math.round((months * DAYS_PER_MONTH) / 14)
                                                         case "MONTHLY": return months
                                                         default: return months
                                                     }
                                                 }
-                                                const installments = getInstallments(formValues.loanTermMonths, formValues.paymentFrequency, formValues.startDate)
-                                                return `${installments} cuotas totales`
+                                                const installments = getInstallments(formValues.loanTermMonths, formValues.paymentFrequency, method)
+                                                const methodLabel = method === "ACTUAL_DAYS" ? "días reales" : "30 días/mes"
+                                                return `${installments} cuotas totales (${methodLabel})`
                                             })()}
                                         </span>
                                     )}
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name="dayCalculationMethod"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Método de Cálculo de Días</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value || "THIRTY_DAYS"}>
+                                    <FormControl>
+                                        <SelectTrigger className="h-10">
+                                            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                                            <SelectValue placeholder="Seleccionar método" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="THIRTY_DAYS">30 días por mes (estándar)</SelectItem>
+                                        <SelectItem value="ACTUAL_DAYS">Días reales del calendario</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormDescription className="text-xs">
+                                    {field.value === "THIRTY_DAYS" && "Todos los meses se calculan como 30 días (360 días/año)"}
+                                    {field.value === "ACTUAL_DAYS" && "Respeta los días reales de cada mes (28, 29, 30, 31)"}
+                                    {!field.value && "Todos los meses se calculan como 30 días (360 días/año)"}
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>

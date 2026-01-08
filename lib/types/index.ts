@@ -110,6 +110,7 @@ export type Loan = {
     interestRate: number
     interestType: "FIXED" | "COMPOUND" | undefined
     paymentFrequency: "DAILY" | "MONTHLY" | "BIWEEKLY" | "WEEKLY" | undefined
+    dayCalculationMethod: "THIRTY_DAYS" | "ACTUAL_DAYS" | undefined
     installmentPaymentAmmount: number
     gpsInstallmentPayment: number
     archived: boolean
@@ -121,6 +122,7 @@ export type Loan = {
     payments: Installment[]
     user: User
     vehicle: Vehicle
+    calculatedTotalInstallments?: number
     // Legacy property for backwards compatibility
     motorcycleId?: string
     motorcycle?: Vehicle

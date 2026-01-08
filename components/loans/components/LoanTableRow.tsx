@@ -331,9 +331,16 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                         : 0
                     // Total effective paid = actual payments + downpayment coverage
                     const effectivePaidInstallments = Number(loan.paidInstallments) + downPaymentInstallments
-                    const progressPercentage = loan.installments > 0 
-                        ? Math.min((effectivePaidInstallments / loan.installments) * 100, 100) 
+                    
+                    // Use calculated total installments from database, fall back to stored value
+                    const totalInstallments = (loan as any).calculatedTotalInstallments ?? loan.installments
+                    const progressPercentage = totalInstallments > 0 
+                        ? Math.min((effectivePaidInstallments / totalInstallments) * 100, 100) 
                         : 0
+                    
+                    // Get calculation method label
+                    const calcMethod = (loan as any).dayCalculationMethod || "THIRTY_DAYS"
+                    const methodLabel = calcMethod === "ACTUAL_DAYS" ? "días reales" : "30d/mes"
                     
                     return (
                         <>
@@ -341,7 +348,7 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                                 <div className="text-sm flex items-center gap-1.5">
                                     <CalendarDays className="h-4 w-4 text-primary" />
                                     <span className="font-medium">
-                                        {effectivePaidInstallments.toFixed(2)} / {Number(loan.installments).toFixed(0)}
+                                        {effectivePaidInstallments.toFixed(2)} / {Number(totalInstallments).toFixed(0)}
                                     </span>
                                 </div>
                             </div>
@@ -350,6 +357,9 @@ export function LoanTableRow({ loan, index, newsSummary, onDelete, onArchive, on
                                     Inicial: {downPaymentInstallments} cuotas cubiertas
                                 </div>
                             )}
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                                {methodLabel}
+                            </div>
                             <div className="w-full h-2 bg-muted rounded-full overflow-hidden mt-1.5">
                                 <div
                                     className={cn(

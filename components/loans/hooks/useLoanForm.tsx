@@ -19,6 +19,7 @@ const loanSchema = z.object({
     interestRate: z.coerce.number().min(0, { message: "La tasa de interés no puede ser negativa." }),
     interestType: z.enum(["FIXED", "COMPOUND"]),
     paymentFrequency: z.enum(["DAILY", "MONTHLY", "BIWEEKLY", "WEEKLY"]),
+    dayCalculationMethod: z.enum(["THIRTY_DAYS", "ACTUAL_DAYS"]).optional(),
     installmentPaymentAmmount: z.coerce.number().optional(),
     gpsAmount: z.coerce.number().min(0, { message: "El monto de GPS no puede ser negativo." }).optional(),
 })
@@ -159,6 +160,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             interestRate: 0,
             interestType: "FIXED",
             paymentFrequency: "DAILY",
+            dayCalculationMethod: "THIRTY_DAYS",
             installmentPaymentAmmount: 32000,
             gpsAmount: 2000,
         },
@@ -504,6 +506,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                     interestRate: 0,
                     interestType: "FIXED",
                     paymentFrequency: loanData.paymentFrequency ?? "DAILY",
+                    dayCalculationMethod: loanData.dayCalculationMethod ?? "THIRTY_DAYS",
                     installmentPaymentAmmount: installmentPayment,
                     gpsAmount: gpsAmount,
                 })
