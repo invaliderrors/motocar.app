@@ -16,6 +16,7 @@ const loanSchema = z.object({
     startDate: z.string().optional(),
     endDate: z.string().nullable().optional(),
     loanTermMonths: z.coerce.number().min(1, { message: "El plazo del contrato debe ser al menos 1 mes." }),
+    installments: z.coerce.number().optional(),
     interestRate: z.coerce.number().min(0, { message: "La tasa de interés no puede ser negativa." }),
     interestType: z.enum(["FIXED", "COMPOUND"]),
     paymentFrequency: z.enum(["DAILY", "MONTHLY", "BIWEEKLY", "WEEKLY"]),
@@ -158,6 +159,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             startDate: new Date().toISOString().split('T')[0],
             endDate: null,
             loanTermMonths: 18,
+            installments: 540,
             interestRate: 0,
             interestType: "FIXED",
             paymentFrequency: "DAILY",
@@ -294,15 +296,30 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
         }
     }
 
-    // Calculate end date helper function - adds months directly
-    const calculateEndDateFromStart = (startDateStr: string, paymentFreq: string, termMonths: number): string => {
+    // Calculate end date helper function
+    // - 30-day mode: adds exact number of days (termMonths × 30)
+    // - Calendar mode: adds calendar months (actual month lengths)
+    const calculateEndDateFromStart = (
+        startDateStr: string, 
+        paymentFreq: string, 
+        termMonths: number,
+        useCalendarDays: boolean = false
+    ): string => {
         const start = new Date(startDateStr)
         let calculatedEndDate: Date
 
-        // For all frequencies, calculate based on the term in months
-        // This provides a consistent end date regardless of payment frequency
-        calculatedEndDate = new Date(start)
-        calculatedEndDate.setMonth(calculatedEndDate.getMonth() + termMonths)
+        if (!useCalendarDays && paymentFreq === 'DAILY') {
+            // For 30-day mode with daily frequency: add exact days (termMonths × 30)
+            // Example: 20 months = 600 days exactly
+            const totalDays = getInstallmentsFromMonths(termMonths, paymentFreq)
+            calculatedEndDate = new Date(start)
+            calculatedEndDate.setDate(calculatedEndDate.getDate() + totalDays)
+        } else {
+            // For calendar mode or non-daily frequencies: add calendar months
+            // Example: Dec 20, 2025 + 20 months = Aug 20, 2027 (608 actual days)
+            calculatedEndDate = new Date(start)
+            calculatedEndDate.setMonth(calculatedEndDate.getMonth() + termMonths)
+        }
 
         return calculatedEndDate.toISOString().split('T')[0]
     }
@@ -347,6 +364,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             paymentFrequency,
             installmentPaymentAmmount,
             gpsAmount,
+            useCalendarDays,
         ] = watchedValues
 
         // Only auto-calculate if we have valid payment amount and months
@@ -402,16 +420,76 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             paymentFrequency,
             installmentPaymentAmmount,
             gpsAmount,
+            useCalendarDays,
         ] = watchedValues
 
         // Auto-calculate end date if we have start date and loan term
         // Only skip if endDate is explicitly null (user cleared it manually)
         if (startDate && loanTermMonths && loanTermMonths > 0 && endDate !== null) {
-            const calculatedEndDate = calculateEndDateFromStart(startDate, paymentFrequency, loanTermMonths)
+            const calculatedEndDate = calculateEndDateFromStart(startDate, paymentFrequency, loanTermMonths, useCalendarDays)
             // Only update if the calculated date is different from current value
             if (calculatedEndDate !== endDate) {
                 form.setValue("endDate", calculatedEndDate, { shouldValidate: false })
             }
+        }
+    }, [watchedValues, isOpen, loanData])
+
+    // Update installments count when useCalendarDays or dates change
+    useEffect(() => {
+        if (!isOpen || !isMounted.current) return
+        if (loanData && !initialLoadComplete.current) return
+
+        const [
+            totalAmount,
+            downPayment,
+            startDate,
+            endDate,
+            loanTermMonths,
+            interestRate,
+            interestType,
+            paymentFrequency,
+            installmentPaymentAmmount,
+            gpsAmount,
+            useCalendarDays,
+        ] = watchedValues
+
+        if (!startDate || !loanTermMonths) return
+
+        console.log('🔄 Recalculating installments:', {
+            useCalendarDays,
+            startDate,
+            endDate,
+            loanTermMonths,
+            paymentFrequency
+        })
+
+        let calculatedInstallments: number
+        
+        if (useCalendarDays) {
+            // Calendar mode: need end date to calculate
+            let effectiveEndDate = endDate
+            
+            // If no end date, calculate it first
+            if (!effectiveEndDate) {
+                effectiveEndDate = calculateEndDateFromStart(startDate, paymentFrequency, loanTermMonths, true)
+                console.log('📅 Calculated end date for calendar mode:', effectiveEndDate)
+            }
+            
+            calculatedInstallments = calculateInstallmentsFromDates(startDate, effectiveEndDate, paymentFrequency)
+            console.log('📅 Calendar mode:', calculatedInstallments, 'installments')
+        } else {
+            // 30-day mode: use fixed calculation
+            calculatedInstallments = getInstallmentsFromMonths(loanTermMonths, paymentFrequency)
+            console.log('🗓️ 30-day mode:', calculatedInstallments, 'installments')
+        }
+
+        // Only update if value changed
+        const currentInstallments = form.getValues('installments')
+        if (calculatedInstallments !== currentInstallments) {
+            console.log('✅ Updating installments from', currentInstallments, 'to', calculatedInstallments)
+            form.setValue('installments', calculatedInstallments, { shouldValidate: false })
+        } else {
+            console.log('⏭️ Installments unchanged:', currentInstallments)
         }
     }, [watchedValues, isOpen, loanData])
 
@@ -572,20 +650,69 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                 endDateToUse = calculateEndDateFromStart(
                     values.startDate,
                     values.paymentFrequency,
-                    values.loanTermMonths
+                    values.loanTermMonths,
+                    values.useCalendarDays || false
                 )
             }
 
-            // Always calculate installments using the 30-days-per-month rule
-            // This ensures consistency: 18 months = 540 installments (18 × 30)
-            // Don't use calculateInstallmentsFromDates as it counts actual calendar days
-            const totalInstallments = getInstallmentsFromMonths(values.loanTermMonths, values.paymentFrequency)
+            // Use the installments value from the form (already calculated by the effect)
+            // But recalculate the breakdown for both modes to send to backend
+            let totalInstallments: number = values.installments || 600;
+            let totalInstallments30Days: number;
+            let totalInstallmentsCalendar: number;
+            
+            // Calculate both modes for backend storage
+            totalInstallments30Days = getInstallmentsFromMonths(values.loanTermMonths, values.paymentFrequency)
+            
+            if (values.startDate && endDateToUse) {
+                totalInstallmentsCalendar = calculateInstallmentsFromDates(
+                    values.startDate,
+                    endDateToUse,
+                    values.paymentFrequency
+                )
+            } else {
+                totalInstallmentsCalendar = totalInstallments30Days
+            }
+            
+            console.log('📤 Submitting with installments:', {
+                totalInstallments,
+                totalInstallments30Days,
+                totalInstallmentsCalendar,
+                useCalendarDays: values.useCalendarDays,
+                endDateToUse
+            })
+
+            // Calculate summary fields to send to backend
+            const financedAmount = Number(values.totalAmount) - Number(values.downPayment)
+            const totalPaymentWithGps = Number(values.installmentPaymentAmmount) + Number(values.gpsAmount)
+            const downPaymentInstallments = totalPaymentWithGps > 0 
+                ? Math.floor(Number(values.downPayment) / totalPaymentWithGps)
+                : 0
+            
+            // Calculate total with interest
+            let totalWithInterest: number
+            if (values.interestType === 'COMPOUND') {
+                const monthlyRate = Number(values.interestRate) / 100 / 12
+                totalWithInterest = financedAmount * Math.pow(1 + monthlyRate, values.loanTermMonths)
+            } else {
+                // FIXED interest
+                const interestAmount = financedAmount * (Number(values.interestRate) / 100) * (values.loanTermMonths / 12)
+                totalWithInterest = financedAmount + interestAmount
+            }
+            const totalInterest = totalWithInterest - financedAmount
 
             const submissionValues: any = {
                 ...values,
                 totalAmount: Number(values.totalAmount) || 0,
                 downPayment: Number(values.downPayment) || 0,
                 installments: totalInstallments,
+                installments30Days: totalInstallments30Days,
+                installmentsCalendar: totalInstallmentsCalendar,
+                loanTermMonths: values.loanTermMonths,
+                financedAmount,
+                totalWithInterest,
+                totalInterest,
+                downPaymentInstallments,
                 interestRate: Number(values.interestRate) || 0,
                 installmentPaymentAmmount: Number(values.installmentPaymentAmmount) || 32000,
                 gpsInstallmentPayment: Number(values.gpsAmount) || 0,
