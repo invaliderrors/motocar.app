@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Switch } from "@/components/ui/switch"
 import { Calculator, Calendar, Clock, Percent, CalendarDays, Navigation } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -30,6 +31,36 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+                <FormField
+                    control={control}
+                    name="useCalendarDays"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/30">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                    Usar días calendario reales
+                                </FormLabel>
+                                <FormDescription className="text-xs">
+                                    {field.value ? (
+                                        <span className="text-primary font-medium">
+                                            ✓ Los meses tendrán su duración real (28-31 días)
+                                        </span>
+                                    ) : (
+                                        <span>
+                                            Cada mes se calcula como 30 días exactos (modo por defecto)
+                                        </span>
+                                    )}
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField
                         control={control}

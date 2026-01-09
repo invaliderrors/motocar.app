@@ -21,6 +21,7 @@ const loanSchema = z.object({
     paymentFrequency: z.enum(["DAILY", "MONTHLY", "BIWEEKLY", "WEEKLY"]),
     installmentPaymentAmmount: z.coerce.number().optional(),
     gpsAmount: z.coerce.number().min(0, { message: "El monto de GPS no puede ser negativo." }).optional(),
+    useCalendarDays: z.boolean().optional(),
 })
 
 type LoanFormValues = z.infer<typeof loanSchema>
@@ -161,6 +162,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             paymentFrequency: "DAILY",
             installmentPaymentAmmount: 32000,
             gpsAmount: 2000,
+            useCalendarDays: false,
         },
     })
 
@@ -506,6 +508,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                     paymentFrequency: loanData.paymentFrequency ?? "DAILY",
                     installmentPaymentAmmount: installmentPayment,
                     gpsAmount: gpsAmount,
+                    useCalendarDays: (loanData as any).useCalendarDays ?? false,
                 })
                 
                 // Mark initial load as complete after a small delay to let the form settle
