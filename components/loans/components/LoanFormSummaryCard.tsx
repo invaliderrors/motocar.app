@@ -1,7 +1,8 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calculator } from "lucide-react"
+import { Calculator, Info } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface LoanFormSummaryCardProps {
     loanSummary: any
@@ -100,6 +101,39 @@ export function LoanFormSummaryCard({
                             <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                                 Ya cubiertos con pago inicial: {loanSummary.downPaymentInstallments} cuotas
                             </p>
+                        )}
+                        
+                        {/* Show comparison when we have both calculations and dates are set */}
+                        {formValues.paymentFrequency === "DAILY" && 
+                         formValues.startDate && 
+                         formValues.endDate &&
+                         loanSummary.totalInstallments30Days !== loanSummary.totalInstallmentsCalendar && (
+                            <Alert className="mt-3 border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/20">
+                                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <AlertDescription className="text-xs text-blue-700 dark:text-blue-300">
+                                    <div className="space-y-1">
+                                        <p className="font-semibold mb-2">Comparación de modos de cálculo:</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className={`p-2 rounded ${!formValues.useCalendarDays ? 'bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-700' : 'bg-blue-50/50 dark:bg-blue-950/10'}`}>
+                                                <p className="font-medium">🗓️ Modo 30 días fijos:</p>
+                                                <p className="text-sm">{loanSummary.totalInstallments30Days} pagos</p>
+                                            </div>
+                                            <div className={`p-2 rounded ${formValues.useCalendarDays ? 'bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-700' : 'bg-blue-50/50 dark:bg-blue-950/10'}`}>
+                                                <p className="font-medium">📅 Días calendario reales:</p>
+                                                <p className="text-sm">{loanSummary.totalInstallmentsCalendar} pagos</p>
+                                            </div>
+                                        </div>
+                                        <p className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
+                                            <span className="font-semibold">Diferencia:</span>{" "}
+                                            <span className={loanSummary.totalInstallmentsCalendar > loanSummary.totalInstallments30Days ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}>
+                                                {Math.abs(loanSummary.totalInstallmentsCalendar - loanSummary.totalInstallments30Days)} pagos
+                                                {loanSummary.totalInstallmentsCalendar > loanSummary.totalInstallments30Days ? " más" : " menos"}
+                                            </span>
+                                            {" con días calendario reales"}
+                                        </p>
+                                    </div>
+                                </AlertDescription>
+                            </Alert>
                         )}
                     </div>
                 </div>

@@ -196,17 +196,37 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             let paymentAmount: number
             let totalPaymentWithGps: number
 
-            // Calculate installments based on dates if available, otherwise use loanTermMonths
+            // Calculate installments - always calculate both modes for comparison
             let totalInstallments: number
+            let totalInstallments30Days: number
+            let totalInstallmentsCalendar: number
+            
+            // Always calculate 30-day mode
+            totalInstallments30Days = getInstallmentsFromMonths(loanTermMonths, values.paymentFrequency, values.startDate)
+            
+            // Calculate calendar mode if we have dates
             if (values.startDate && values.endDate) {
-                totalInstallments = calculateInstallmentsFromDates(
+                // Use explicit end date if provided
+                totalInstallmentsCalendar = calculateInstallmentsFromDates(
                     values.startDate,
                     values.endDate,
                     values.paymentFrequency
                 )
+            } else if (values.startDate && loanTermMonths > 0) {
+                // Calculate end date from start date + months, then calculate calendar days
+                const calculatedEndDate = calculateEndDateFromStart(values.startDate, values.paymentFrequency, loanTermMonths)
+                totalInstallmentsCalendar = calculateInstallmentsFromDates(
+                    values.startDate,
+                    calculatedEndDate,
+                    values.paymentFrequency
+                )
             } else {
-                totalInstallments = getInstallmentsFromMonths(loanTermMonths, values.paymentFrequency, values.startDate)
+                // Fallback: no dates available
+                totalInstallmentsCalendar = totalInstallments30Days
             }
+            
+            // Use the selected mode for the actual calculation
+            totalInstallments = values.useCalendarDays ? totalInstallmentsCalendar : totalInstallments30Days
 
             if (values.interestType === "FIXED") {
                 const interestAmount = financedAmount * (interestRate / 100) * (loanTermMonths / 12)
@@ -236,6 +256,8 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                         gpsAmount,
                         totalPaymentWithGps,
                         totalInstallments,
+                        totalInstallments30Days,
+                        totalInstallmentsCalendar,
                         downPaymentInstallments,
                         daysToPayOff,
                         totalInterest: totalWithInterest - financedAmount,
@@ -258,6 +280,8 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                         gpsAmount,
                         totalPaymentWithGps,
                         totalInstallments,
+                        totalInstallments30Days,
+                        totalInstallmentsCalendar,
                         downPaymentInstallments,
                         totalInterest: totalWithInterest - financedAmount,
                     })
@@ -296,6 +320,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             "paymentFrequency",
             "installmentPaymentAmmount",
             "gpsAmount",
+            "useCalendarDays",
         ],
     })
 
@@ -579,6 +604,13 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
             // Remove fields that are not part of the API
             delete submissionValues.loanTermMonths
             delete submissionValues.gpsAmount
+            
+            // Ensure we're not accidentally sending old field names
+            if ('dayCalculationMethod' in submissionValues) {
+                delete submissionValues.dayCalculationMethod
+            }
+
+            console.log('🔍 Submitting loan data:', submissionValues)
 
             let response
             if (loanId) {

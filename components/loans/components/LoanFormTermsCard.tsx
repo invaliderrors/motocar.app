@@ -51,99 +51,100 @@ export function LoanFormTermsCard({ control, formValues, formatNumber, parseForm
                     control={control}
                     name="useCalendarDays"
                     render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/30">
-                            <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                    Usar días calendario reales
-                                </FormLabel>
-                                <FormDescription className="text-xs">
-                                    {field.value ? (
-                                        <span className="text-primary font-medium">
-                                            ✓ Los meses tendrán su duración real (28-31 días)
-                                        </span>
-                                    ) : (
-                                        <span>
-                                            Cada mes se calcula como 30 días exactos (modo por defecto)
-                                        </span>
-                                    )}
-                                </FormDescription>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={(checked) => {
-                                        // If editing an existing loan and the value is different from original
-                                        if (loanId && originalUseCalendarDays !== null && originalUseCalendarDays !== checked) {
-                                            // Show warning dialog
-                                            setPendingValue(checked)
-                                            setShowWarning(true)
-                                        } else {
-                                            // New loan or same value - allow change immediately
-                                            field.onChange(checked)
-                                        }
-                                    }}
-                                />
-                            </FormControl>
-                        </FormItem>
+                        <>
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/30">
+                                <div className="space-y-0.5">
+                                    <FormLabel className="text-base">
+                                        Usar días calendario reales
+                                    </FormLabel>
+                                    <FormDescription className="text-xs">
+                                        {field.value ? (
+                                            <span className="text-primary font-medium">
+                                                ✓ Los meses tendrán su duración real (28-31 días)
+                                            </span>
+                                        ) : (
+                                            <span>
+                                                Cada mes se calcula como 30 días exactos (modo por defecto)
+                                            </span>
+                                        )}
+                                    </FormDescription>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={(checked) => {
+                                            // If editing an existing loan and the value is different from original
+                                            if (loanId && originalUseCalendarDays !== null && originalUseCalendarDays !== checked) {
+                                                // Show warning dialog
+                                                setPendingValue(checked)
+                                                setShowWarning(true)
+                                            } else {
+                                                // New loan or same value - allow change immediately
+                                                field.onChange(checked)
+                                            }
+                                        }}
+                                    />
+                                </FormControl>
+                            </FormItem>
+
+                            <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle className="flex items-center gap-2">
+                                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                            Advertencia: Cambio en modo de cálculo
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription asChild>
+                                            <div className="space-y-3">
+                                                <p className="text-sm text-muted-foreground">
+                                                    Está a punto de cambiar el modo de cálculo de días en un contrato existente.
+                                                </p>
+                                                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-md p-3 space-y-2">
+                                                    <p className="font-semibold text-amber-900 dark:text-amber-200 text-sm">
+                                                        ⚠️ Consecuencias importantes:
+                                                    </p>
+                                                    <ul className="text-xs space-y-1 text-amber-800 dark:text-amber-300 list-disc list-inside">
+                                                        <li>Los pagos ya registrados se calcularon con el modo anterior</li>
+                                                        <li>Los cálculos futuros usarán el nuevo modo</li>
+                                                        <li>Esto puede crear discrepancias en días cubiertos y deuda</li>
+                                                        <li>El cambio afectará las fechas de cobertura y días de atraso</li>
+                                                    </ul>
+                                                </div>
+                                                <p className="text-sm font-medium text-destructive">
+                                                    ⛔ No se recomienda cambiar el modo en contratos con pagos existentes.
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    ¿Está seguro de que desea continuar?
+                                                </p>
+                                            </div>
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel onClick={() => {
+                                            setPendingValue(null)
+                                            setShowWarning(false)
+                                        }}>
+                                            Cancelar
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={() => {
+                                                if (pendingValue !== null) {
+                                                    // Apply the change using the field's onChange
+                                                    field.onChange(pendingValue)
+                                                }
+                                                setPendingValue(null)
+                                                setShowWarning(false)
+                                            }}
+                                            className="bg-amber-600 hover:bg-amber-700"
+                                        >
+                                            Sí, cambiar modo
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </>
                     )}
                 />
-
-                <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2">
-                                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                                Advertencia: Cambio en modo de cálculo
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="space-y-3">
-                                <p className="text-sm">
-                                    Está a punto de cambiar el modo de cálculo de días en un contrato existente.
-                                </p>
-                                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-md p-3 space-y-2">
-                                    <p className="font-semibold text-amber-900 dark:text-amber-200 text-sm">
-                                        ⚠️ Consecuencias importantes:
-                                    </p>
-                                    <ul className="text-xs space-y-1 text-amber-800 dark:text-amber-300 list-disc list-inside">
-                                        <li>Los pagos ya registrados se calcularon con el modo anterior</li>
-                                        <li>Los cálculos futuros usarán el nuevo modo</li>
-                                        <li>Esto puede crear discrepancias en días cubiertos y deuda</li>
-                                        <li>El cambio afectará las fechas de cobertura y días de atraso</li>
-                                    </ul>
-                                </div>
-                                <p className="text-sm font-medium text-destructive">
-                                    ⛔ No se recomienda cambiar el modo en contratos con pagos existentes.
-                                </p>
-                                <p className="text-sm">
-                                    ¿Está seguro de que desea continuar?
-                                </p>
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => {
-                                setPendingValue(null)
-                                setShowWarning(false)
-                            }}>
-                                Cancelar
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={() => {
-                                    if (pendingValue !== null) {
-                                        // Apply the change
-                                        control._formValues.useCalendarDays = pendingValue
-                                        control._subjects.state.next({
-                                            name: "useCalendarDays",
-                                        } as any)
-                                    }
-                                    setPendingValue(null)
-                                    setShowWarning(false)
-                                }}
-                                className="bg-amber-600 hover:bg-amber-700"
-                            >
-                                Sí, cambiar modo
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField
                         control={control}
