@@ -141,6 +141,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
     const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([])
     const [loadingData, setLoadingData] = useState(false)
     const [loanSummary, setLoanSummary] = useState<any>(null)
+    const [originalUseCalendarDays, setOriginalUseCalendarDays] = useState<boolean | null>(null)
     const { toast } = useToast()
     const dataLoaded = useRef(false)
     const isMounted = useRef(false)
@@ -495,6 +496,9 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                     gpsAmount = 2000
                 }
 
+                const originalCalendarDaysValue = (loanData as any).useCalendarDays ?? false
+                setOriginalUseCalendarDays(originalCalendarDaysValue)
+                
                 form.reset({
                     userId: loanData.userId,
                     vehicleId: loanData.vehicleId,
@@ -508,7 +512,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
                     paymentFrequency: loanData.paymentFrequency ?? "DAILY",
                     installmentPaymentAmmount: installmentPayment,
                     gpsAmount: gpsAmount,
-                    useCalendarDays: (loanData as any).useCalendarDays ?? false,
+                    useCalendarDays: originalCalendarDaysValue,
                 })
                 
                 // Mark initial load as complete after a small delay to let the form settle
@@ -631,5 +635,7 @@ export function useLoanForm({ loanId, loanData, onSaved }: UseLoanFormProps) {
         formatNumber,
         parseFormattedNumber,
         getFrequencyText,
+        originalUseCalendarDays,
+        loanId,
     }
 }

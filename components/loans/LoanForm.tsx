@@ -38,6 +38,8 @@ export function LoanForm({ children, loanId, loanData, onSaved }: LoanFormProps)
     formatNumber,
     parseFormattedNumber,
     getFrequencyText,
+    originalUseCalendarDays,
+    loanId: formLoanId,
   } = useLoanForm({ loanId, loanData, onSaved })
 
   return (
@@ -89,6 +91,8 @@ export function LoanForm({ children, loanId, loanData, onSaved }: LoanFormProps)
                     formValues={formValues}
                     formatNumber={formatNumber}
                     parseFormattedNumber={parseFormattedNumber}
+                    originalUseCalendarDays={originalUseCalendarDays}
+                    loanId={formLoanId}
                   />
 
                   <LoanFormSummaryCard
