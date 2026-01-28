@@ -30,6 +30,7 @@ export function useTableState({
     onFiltersChange 
 }: UseTableStateProps) {
     const [searchTerm, setSearchTerm] = useState("")
+    const [appliedSearchTerm, setAppliedSearchTerm] = useState("")
     const [sortField, setSortField] = useState<SortField>("date")
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
     const [paymentFilter, setPaymentFilter] = useState<string | null>(null)
@@ -37,17 +38,22 @@ export function useTableState({
     const [itemsPerPage, setItemsPerPage] = useState(15)
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
-    // Trigger backend fetch when filters change
+    // Trigger backend fetch when filters change (except searchTerm which needs manual apply)
     useEffect(() => {
         onFiltersChange({
             dateRange,
             paymentMethod: paymentFilter,
             isLate: statusFilter,
-            searchTerm,
+            searchTerm: appliedSearchTerm,
             page: serverPage,
             limit: itemsPerPage,
         })
-    }, [dateRange, paymentFilter, statusFilter, searchTerm, serverPage, itemsPerPage])
+    }, [dateRange, paymentFilter, statusFilter, appliedSearchTerm, serverPage, itemsPerPage])
+
+    const applySearch = () => {
+        setAppliedSearchTerm(searchTerm)
+        setServerPage(1)
+    }
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -60,6 +66,7 @@ export function useTableState({
 
     const resetFilters = () => {
         setSearchTerm("")
+        setAppliedSearchTerm("")
         setSortField("date")
         setSortDirection("desc")
         setPaymentFilter(null)
@@ -68,7 +75,7 @@ export function useTableState({
         setServerPage(1)
     }
 
-    const hasActiveFilters = !!(searchTerm || paymentFilter !== null || statusFilter !== null || dateRange)
+    const hasActiveFilters = !!(appliedSearchTerm || paymentFilter !== null || statusFilter !== null || dateRange)
 
     // Client-side sorting of the current page results
     const sortedInstallments = useMemo(() => {
@@ -122,6 +129,7 @@ export function useTableState({
     return {
         searchTerm,
         setSearchTerm,
+        applySearch,
         sortField,
         sortDirection,
         paymentFilter,

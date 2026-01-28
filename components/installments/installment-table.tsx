@@ -79,6 +79,7 @@ export function InstallmentTable({ onRefresh }: { onRefresh?: (refreshFn: () => 
   const {
     searchTerm,
     setSearchTerm,
+    applySearch,
     sortField,
     sortDirection,
     paymentFilter,
@@ -116,6 +117,7 @@ export function InstallmentTable({ onRefresh }: { onRefresh?: (refreshFn: () => 
         <SearchFilters
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          onSearchApply={applySearch}
           dateRange={dateRange}
           onDateRangeChange={(range) => {
             handleDateRangeChange(range)

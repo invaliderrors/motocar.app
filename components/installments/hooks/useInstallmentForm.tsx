@@ -616,7 +616,16 @@ export function useInstallmentForm({ loanId, installment, onSaved }: UseInstallm
             }
 
             // Always include paymentDate for both create and update
-            payload.paymentDate = values.paymentDate ? values.paymentDate.toISOString() : new Date().toISOString()
+            // Format as YYYY-MM-DD to avoid timezone issues
+            const formatDateAsYYYYMMDD = (date: Date) => {
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                return `${year}-${month}-${day}`
+            }
+            payload.paymentDate = values.paymentDate 
+                ? formatDateAsYYYYMMDD(values.paymentDate) 
+                : formatDateAsYYYYMMDD(new Date())
 
             console.log('📅 Payment submission payload:', {
                 isEditing,

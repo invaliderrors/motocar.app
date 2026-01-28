@@ -20,6 +20,7 @@ import type { DateRange } from "react-day-picker"
 interface SearchFiltersProps {
     searchTerm: string
     onSearchChange: (value: string) => void
+    onSearchApply: () => void
     dateRange: DateRange | undefined
     onDateRangeChange: (range: DateRange | undefined) => void
     paymentFilter: string | null
@@ -35,6 +36,7 @@ interface SearchFiltersProps {
 export function SearchFilters({
     searchTerm,
     onSearchChange,
+    onSearchApply,
     dateRange,
     onDateRangeChange,
     paymentFilter,
@@ -46,17 +48,32 @@ export function SearchFilters({
     hasActiveFilters,
     actionButton,
 }: SearchFiltersProps) {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            onSearchApply()
+        }
+    }
     return (
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary" />
-                <Input
-                    type="search"
-                    placeholder="Buscar por cliente, modelo o placa..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                />
+            <div className="relative flex-1 max-w-md flex gap-2">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary" />
+                    <Input
+                        type="search"
+                        placeholder="Buscar por cliente, modelo o placa..."
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                </div>
+                <Button
+                    size="sm"
+                    onClick={onSearchApply}
+                    className="shrink-0"
+                >
+                    Buscar
+                </Button>
             </div>
 
             <div className="flex gap-2 flex-wrap">
