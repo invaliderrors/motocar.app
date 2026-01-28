@@ -48,6 +48,8 @@ interface PaymentCoverageInfo {
     coverageEndDate: string
     skippedDatesCount?: number
     skippedDates?: string[]
+    paymentAmount?: number
+    daysCovered?: number
 }
 
 interface PaymentStatusSectionProps {
@@ -77,6 +79,19 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
             maximumFractionDigits: 0,
         }).format(value)
     }
+
+    // Calculate display values for payment status indicator
+    const displayDaysBehind = paymentCoverage 
+        ? Number((paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate).toFixed(2))
+        : 0
+    
+    const displayAmountNeeded = paymentCoverage
+        ? paymentCoverage.amountNeededToCatchUp
+        : 0
+
+    const willBeCurrentAfterPayment = paymentCoverage 
+        ? (paymentCoverage.paymentAmount || 0) >= paymentCoverage.amountNeededToCatchUp
+        : false
 
     // Calculate installments owed/ahead based on payment coverage
     // ADJUSTED FOR EMPLOYEE DISPLAY: Show what they owe INCLUDING today's payment
@@ -168,6 +183,42 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
         .slice(0, 5)
 
     return (
+        <div className="space-y-3">
+            {/* Payment Status Indicator */}
+            {paymentCoverage && isLate && displayAmountNeeded > 0 && (
+                <div className={`text-[10px] flex flex-col gap-1.5 rounded-lg px-3 py-2 border ${
+                    willBeCurrentAfterPayment 
+                        ? 'bg-green-100 dark:bg-green-950/40 border-green-300 dark:border-green-800' 
+                        : 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800'
+                }`}>
+                    {willBeCurrentAfterPayment ? (
+                        <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
+                            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <span className="font-semibold text-xs">Pago completo • Al día</span>
+                            <span className="ml-auto text-green-600 dark:text-green-400 font-medium text-xs">{formatCurrency(displayAmountNeeded)}</span>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="flex items-center justify-between text-amber-700 dark:text-amber-400">
+                                <div className="flex items-center gap-1">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    <span className="font-medium">Pago parcial</span>
+                                </div>
+                                <span className="font-semibold">{paymentCoverage.daysCovered?.toFixed(1) || 0} días</span>
+                            </div>
+                            <div className="flex items-center justify-between text-muted-foreground pt-1 border-t border-amber-200 dark:border-amber-800">
+                                <span>Debe en total:</span>
+                                <span className="font-semibold">{displayDaysBehind.toFixed(1)} días • {formatCurrency(displayAmountNeeded)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-red-600 dark:text-red-400">
+                                <span>Quedará debiendo:</span>
+                                <span className="font-semibold">{Math.max(0, displayDaysBehind - (paymentCoverage.daysCovered || 0)).toFixed(1)} días • {formatCurrency(Math.max(0, displayAmountNeeded - (paymentCoverage.paymentAmount || 0)))}</span>
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
         <Card className="border-primary/20 shadow-sm">
             <CardHeader className="pb-2 pt-3 px-3">
                 <CardTitle className="text-sm flex items-center justify-between">
@@ -306,5 +357,6 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                 )}
             </CardContent>
         </Card>
+        </div>
     )
 }

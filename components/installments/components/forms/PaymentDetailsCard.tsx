@@ -101,14 +101,15 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
     const isLate = paymentCoverage ? paymentCoverage.daysAheadAfterPayment <= 0 : false
     const isOnTime = false // Never "on time" in form view
     
-    // Adjust days behind display to include today if at 0
+    // Calculate days behind BEFORE this payment (how late they currently are)
+    // Use amountNeededToCatchUp divided by dailyRate to get current days behind
     const displayDaysBehind = paymentCoverage 
-        ? (paymentCoverage.daysAheadAfterPayment === 0 ? 1 : Number(Math.abs(paymentCoverage.daysBehind).toFixed(2)))
+        ? Number((paymentCoverage.amountNeededToCatchUp / paymentCoverage.dailyRate).toFixed(2))
         : 0
     
-    // Adjust amount needed to include today's payment if at 0
+    // Amount needed to catch up (before this payment)
     const displayAmountNeeded = paymentCoverage
-        ? (paymentCoverage.amountNeededToCatchUp || paymentCoverage.dailyRate)
+        ? paymentCoverage.amountNeededToCatchUp
         : 0
 
     const getFileIcon = (file: File) => {
@@ -219,20 +220,6 @@ export function PaymentDetailsCard({ control, paymentCoverage, loadingCoverage, 
                                                 {format(parseCalendarDate(paymentCoverage.coverageStartDate), "dd MMM", { locale: es })} - {format(parseCalendarDate(paymentCoverage.coverageEndDate), "dd MMM", { locale: es })}
                                             </span>
                                         </div>
-
-                                        {isLate && displayAmountNeeded > 0 && (
-                                            <div className="text-[10px] text-red-700 dark:text-red-400 flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />
-                                                <span>Al día: {formatCurrency(displayAmountNeeded)}</span>
-                                                {paymentCoverage.willBeCurrentAfterPayment && <span className="text-green-600 ml-1">✓</span>}
-                                            </div>
-                                        )}
-
-                                        {isAdvance && (
-                                            <div className="text-[10px] text-blue-700 dark:text-blue-400">
-                                                🚀 Hasta el {format(new Date(paymentCoverage.coverageEndDate), "dd MMM", { locale: es })}
-                                            </div>
-                                        )}
                                     </div>
                                 )}
                             </div>
