@@ -191,20 +191,6 @@ export function AppSidebar({ className, ...props }: React.ComponentProps<typeof 
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 
                 <div className="relative flex flex-col gap-4 py-6">
-                    <div className="flex items-center justify-center">
-                        <a href="/dashboard" className="group flex items-center justify-center transition-all duration-300 hover:scale-105">
-                            {open ? (
-                                <div className="relative h-20 w-56">
-                                    <Image src="/motocar_logo.png" alt="MotoFácil Logo" fill className="object-contain drop-shadow-md" priority />
-                                </div>
-                            ) : (
-                                <div className="relative h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-2 shadow-sm border border-primary/10">
-                                    <Image src="/motocar_logo.png" alt="MotoFácil Icon" fill className="object-contain" priority />
-                                </div>
-                            )}
-                        </a>
-                    </div>
-                    
                     {/* Store Switcher for Admin or Store Badge for Employee */}
                     {open && (
                         <div className="px-3">
