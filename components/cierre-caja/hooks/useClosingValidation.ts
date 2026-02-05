@@ -56,7 +56,7 @@ export function useClosingValidation(cashRegisterId: string | null) {
       setError(null)
       
       try {
-        const response = await HttpService.get<ClosingValidationResult>(`/closing/validate/${cashRegisterId}`)
+        const response = await HttpService.get<ClosingValidationResult>(`/api/v1/closing/validate/${cashRegisterId}`)
         setValidation(response.data)
       } catch (err) {
         console.error("Error validating closing:", err)
