@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import es from "date-fns/locale/es"
-import { ArrowUpToLine, ArrowDownToLine, Calendar, User, FileText, Bike, AlertCircle, Info, Eye } from "lucide-react"
+import { ArrowUpToLine, ArrowDownToLine, Calendar, User, FileText, Bike, AlertCircle, Info, Eye, Loader2 } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +19,8 @@ import { GeneralInfoCard } from "./history/components/CashRegisterGeneralInfo"
 import { CashRegisterHeader } from "./history/components/CashRegisterHeader"
 import { useCashRegisterDetail } from "./transactions/hooks/useCashRegisterDetails"
 import { EmptyState } from "./history/components/CashRegisterEmptyState"
+import { useClosingValidation } from "./hooks/useClosingValidation"
+import { ClosingValidationAlert } from "./ClosingValidationAlert"
 
 type Props = {
     open: boolean
@@ -28,11 +30,30 @@ type Props = {
 
 export function CashRegisterDetailModal({ open, onClose, cashRegister }: Props) {
     const { totalBasePayments, totalGpsPayments, totalIncome, totalExpense, balance, formatMethod, getInitials } = useCashRegisterDetail(cashRegister)
+    const { validation, loading: validationLoading, error: validationError } = useClosingValidation(open ? cashRegister.id : null)
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-6">
                 <CashRegisterHeader />
+
+                {/* Validation Alert */}
+                {validationLoading && (
+                    <div className="flex items-center justify-center gap-2 p-4 border rounded-lg bg-slate-50 dark:bg-slate-900">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Validando cierre...</span>
+                    </div>
+                )}
+                
+                {validationError && (
+                    <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20">
+                        <p className="text-sm text-red-600 dark:text-red-400">{validationError}</p>
+                    </div>
+                )}
+                
+                {validation && !validationLoading && !validationError && (
+                    <ClosingValidationAlert validation={validation} />
+                )}
 
                 {/* Cash Register Info */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
