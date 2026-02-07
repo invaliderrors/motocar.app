@@ -238,20 +238,22 @@ export function PaymentStatusSection({ lastInstallmentInfo, payments, paymentCov
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground">
-                                {isAdvance ? 'Días adelantados:' : 'Cuotas atrasadas:'}
+                                {isAdvance ? 'Días adelantados:' : installmentsOwed > 0 ? 'Cuotas atrasadas:' : 'Estado:'}
                             </p>
                             <p className={`text-lg font-bold ${isAdvance ? 'text-blue-600' : installmentsOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {isAdvance ? Math.round(installmentsAhead) : Number(installmentsOwed.toFixed(2))}
+                                {isAdvance ? Math.round(installmentsAhead) : installmentsOwed > 0 ? Number(installmentsOwed.toFixed(2)) : 'Al día'}
                             </p>
                         </div>
                         <div className="text-right">
                             <p className="text-xs text-muted-foreground">
-                                {isAdvance ? 'Cubierto hasta:' : 'Total adeudado:'}
+                                {isAdvance ? 'Cubierto hasta:' : installmentsOwed > 0 ? 'Total adeudado:' : ''}
                             </p>
                             <p className={`text-sm font-bold ${isAdvance ? 'text-blue-600' : amountOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
                                 {isAdvance && paymentCoverage 
                                     ? format(parseCalendarDate(paymentCoverage.lastCoveredDate), "dd/MM/yyyy", { locale: es })
-                                    : formatCurrency(amountOwed)
+                                    : amountOwed > 0
+                                        ? formatCurrency(amountOwed)
+                                        : ''
                                 }
                             </p>
                         </div>
