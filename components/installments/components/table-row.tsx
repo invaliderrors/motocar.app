@@ -127,11 +127,17 @@ export function InstallmentRow({
             </TableCell>
             <TableCell className="hidden lg:table-cell text-foreground">
                 {(() => {
-                    // Determine which date to display first
-                    const displayDate = installment.advancePaymentDate 
-                        ? installment.advancePaymentDate
-                        : (installment.isLate && installment.latePaymentDate)
-                            ? installment.latePaymentDate
+                    // Determine which date to display:
+                    // - For late payments (after payment still behind): show latePaymentDate (due date)
+                    // - For up-to-date/advance payments: show advancePaymentDate (coverage end date)
+                    
+                    // Check if this payment is currently behind (using stored backend data)
+                    const isCurrentlyBehind = installment.daysBehind !== undefined && installment.daysBehind > 0;
+                    
+                    const displayDate = (isCurrentlyBehind && installment.latePaymentDate)
+                        ? installment.latePaymentDate
+                        : installment.advancePaymentDate
+                            ? installment.advancePaymentDate
                             : installment.paymentDate;
                     
                     // Determine the color based on stored payment status
